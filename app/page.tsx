@@ -154,6 +154,12 @@ export default function Home() {
       const sectionReverseMap = reverseMap[sectionId];
       const resolvedValue = sectionReverseMap?.[newEnglish] || newEnglish;
       setCurrentInputs((prev) => ({ ...prev, [inputKey]: resolvedValue }));
+
+      // 프리뷰 섹션도 즉시 업데이트 (useEffect 대기 없이)
+      setPreviewSections((prev) =>
+        prev.map((s) => s.id === sectionId ? { ...s, english: newEnglish } : s)
+      );
+      flashToastRef.current();
     }
   }, []);
 
