@@ -10,21 +10,43 @@ interface TextureSelectorProps {
 
 // 장르별 추천 질감 조합
 const GENRE_TEXTURES: Record<string, string[]> = {
-  "K-Pop": ["매끈한 (Polished)", "밀도 높은", "깔끔 디지털"],
+  "K-Pop": ["매끈한 (Polished)", "밀도 높은 (Dense)", "Crisp Clean"],
   "Pop": ["매끈한 (Polished)", "중간 룸 (Room)", "적당한 (Balanced)"],
   "Hip-Hop": ["거친 (Raw/Gritty)", "좁고 가까운 (Intimate)", "Lo-Fi Tape Warmth"],
+  "Gangsta Rap": ["거친 (Raw/Gritty)", "무거운 (Heavy)", "좁고 가까운 (Intimate)"],
   "Trap": ["거친 (Raw/Gritty)", "무한 공간 (Infinite)", "인더스트리얼 (Industrial)"],
+  "Drill": ["Cold Digital", "거친 (Raw/Gritty)", "미니멀 (Sparse)"],
+  "Boom Bap": ["Lo-Fi Tape Warmth", "Vinyl Crackle", "오가닉 (Organic)"],
+  "Emo Rap": ["몽환적 (Dreamy)", "거친 (Raw/Gritty)", "좁고 가까운 (Intimate)"],
   "R&B": ["부드러운 (Smooth)", "Analog Saturation", "중간 룸 (Room)"],
+  "Neo Soul": ["Analog Saturation", "오가닉 (Organic)", "부드러운 (Smooth)"],
   "Ballad": ["부드러운 (Smooth)", "넓은 홀 (Wide Hall)", "적당한 (Balanced)"],
-  "EDM": ["글래시 (Glassy)", "밀도 높은", "넓은 홀 (Wide Hall)"],
+  "EDM": ["글래시 (Glassy)", "밀도 높은 (Dense)", "넓은 홀 (Wide Hall)"],
   "Lo-Fi": ["Lo-Fi Tape Warmth", "Vinyl Crackle", "좁고 가까운 (Intimate)"],
   "Rock": ["거친 (Raw/Gritty)", "중간 룸 (Room)", "오가닉 (Organic)"],
+  "Metal": ["무거운 (Heavy)", "Wall of Sound", "거친 (Raw/Gritty)"],
+  "Punk": ["거친 (Raw/Gritty)", "좁고 가까운 (Intimate)", "부서지는 (Crushed)"],
   "Techno": ["Cold Digital", "미니멀 (Sparse)", "인더스트리얼 (Industrial)"],
   "House": ["부드러운 (Smooth)", "중간 룸 (Room)", "적당한 (Balanced)"],
+  "Trance": ["몽환적 (Dreamy)", "넓은 홀 (Wide Hall)", "사이키델릭 (Psychedelic)"],
   "Jazz": ["Analog Saturation", "오가닉 (Organic)", "중간 룸 (Room)"],
-  "Cinematic": ["넓은 홀 (Wide Hall)", "밀도 높은", "몽환적 (Dreamy)"],
+  "Blues": ["Analog Saturation", "거친 (Raw/Gritty)", "오가닉 (Organic)"],
+  "Cinematic": ["넓은 홀 (Wide Hall)", "밀도 높은 (Dense)", "시네마틱 (Cinematic)"],
   "Ambient": ["몽환적 (Dreamy)", "무한 공간 (Infinite)", "사이키델릭 (Psychedelic)"],
   "Synthwave": ["Analog Saturation", "레트로 (Retro)", "미래적 (Futuristic)"],
+  "Trot": ["Crisp Clean", "적당한 (Balanced)", "매끈한 (Polished)"],
+  "Reggae": ["오가닉 (Organic)", "Analog Saturation", "중간 룸 (Room)"],
+  "Latin": ["오가닉 (Organic)", "적당한 (Balanced)", "부드러운 (Smooth)"],
+  "Afrobeats": ["오가닉 (Organic)", "적당한 (Balanced)", "중간 룸 (Room)"],
+  "Disco": ["매끈한 (Polished)", "Analog Saturation", "레트로 (Retro)"],
+  "Funk": ["Analog Saturation", "오가닉 (Organic)", "거친 (Raw/Gritty)"],
+  "Folk": ["오가닉 (Organic)", "좁고 가까운 (Intimate)", "Analog Saturation"],
+  "Acoustic": ["오가닉 (Organic)", "좁고 가까운 (Intimate)", "Crisp Clean"],
+  "Gospel": ["넓은 홀 (Wide Hall)", "오가닉 (Organic)", "부드러운 (Smooth)"],
+  "City Pop": ["Analog Saturation", "레트로 (Retro)", "매끈한 (Polished)"],
+  "Dance Pop": ["매끈한 (Polished)", "밀도 높은 (Dense)", "글래시 (Glassy)"],
+  "Shoegaze": ["Wall of Sound", "몽환적 (Dreamy)", "무한 공간 (Infinite)"],
+  "Grunge": ["거친 (Raw/Gritty)", "무거운 (Heavy)", "오가닉 (Organic)"],
 };
 
 const TEXTURE_CATEGORIES = [
@@ -34,6 +56,7 @@ const TEXTURE_CATEGORIES = [
     options: [
       "Lo-Fi Tape Warmth", "Analog Saturation", "Vinyl Crackle",
       "Cold Digital", "Icy Sheen", "Crisp Clean",
+      "따뜻한 진공관 (Tube Warmth)", "촉촉한 (Wet/Humid)",
     ],
   },
   {
@@ -41,7 +64,8 @@ const TEXTURE_CATEGORIES = [
     label: "밀도",
     options: [
       "미니멀 (Sparse)", "적당한 (Balanced)", "풍성한 (Layered)",
-      "Wall of Sound", "오버드라이브 (Overdriven)",
+      "밀도 높은 (Dense)", "Wall of Sound", "오버드라이브 (Overdriven)",
+      "무거운 (Heavy)", "가벼운 (Light/Airy)",
     ],
   },
   {
@@ -50,6 +74,7 @@ const TEXTURE_CATEGORIES = [
     options: [
       "매끈한 (Polished)", "거친 (Raw/Gritty)", "부서지는 (Crushed)",
       "부드러운 (Smooth)", "사포질 (Sandpaper)", "글래시 (Glassy)",
+      "벨벳 (Velvet)", "메탈릭 (Metallic)", "먼지낀 (Dusty)",
     ],
   },
   {
@@ -58,6 +83,7 @@ const TEXTURE_CATEGORIES = [
     options: [
       "좁고 가까운 (Intimate)", "중간 룸 (Room)", "넓은 홀 (Wide Hall)",
       "무한 공간 (Infinite)", "야외 (Open Air)", "폐쇄적 (Claustrophobic)",
+      "지하실 (Basement)", "스타디움 (Stadium)", "수중 (Underwater)",
     ],
   },
   {
@@ -67,6 +93,7 @@ const TEXTURE_CATEGORIES = [
       "몽환적 (Dreamy)", "사이키델릭 (Psychedelic)", "시네마틱 (Cinematic)",
       "인더스트리얼 (Industrial)", "오가닉 (Organic)", "글리치 (Glitch)",
       "레트로 (Retro)", "미래적 (Futuristic)", "언더그라운드 (Underground)",
+      "고딕 (Gothic)", "앤틱 (Antique)", "네오 (Neo/Modern)",
     ],
   },
 ];
