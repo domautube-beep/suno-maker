@@ -158,14 +158,6 @@ export const STEPS: Step[] = [
     skipLabel: "맡길게",
   },
   {
-    id: "vocal",
-    question: "보컬은 어떤 느낌으로?",
-    tooltip: "보컬 타입·음색·딜리버리·공간감. Suno Lyrics의 VOCAL PROFILE 명령어로 변환됩니다.",
-    type: "text",
-    required: false,
-    skipLabel: "맡길게",
-  },
-  {
     id: "reverb",
     question: "보컬 공간감은?",
     tooltip: "보컬이 어디서 부르는 느낌인지. 가까운 속삭임부터 콘서트홀까지.",
