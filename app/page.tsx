@@ -67,13 +67,20 @@ export default function Home() {
   const [streamingText, setStreamingText] = useState("");
   const styleStreamRef = useRef<HTMLPreElement>(null);
 
+  const userScrolledStyleRef = useRef(false);
+
   useEffect(() => {
-    if (streamingText) {
-      if (styleStreamRef.current) styleStreamRef.current.scrollTop = styleStreamRef.current.scrollHeight;
-      const scrollParent = styleStreamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
-      if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
+    if (!generating) { userScrolledStyleRef.current = false; return; }
+    const handler = () => { userScrolledStyleRef.current = true; };
+    window.addEventListener("wheel", handler, { passive: true });
+    return () => window.removeEventListener("wheel", handler);
+  }, [generating]);
+
+  useEffect(() => {
+    if (!streamingText || userScrolledStyleRef.current) return;
+    if (styleStreamRef.current) styleStreamRef.current.scrollTop = styleStreamRef.current.scrollHeight;
+    const scrollParent = styleStreamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+    if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
   }, [streamingText]);
 
   const generateStyle = useCallback(async (inputs: Record<string, string>) => {

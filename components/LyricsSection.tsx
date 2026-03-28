@@ -361,20 +361,27 @@ export default function LyricsSection({
     return parts.join("\n");
   };
 
-  // 스트리밍 텍스트 + 자동 스크롤
+  // 스트리밍 텍스트 + 자동 스크롤 (사용자 스크롤 시 해제)
   const [streamingLyrics, setStreamingLyrics] = useState("");
   const streamRef = useRef<HTMLPreElement>(null);
+  const userScrolledRef = useRef(false);
+
+  // 사용자 스크롤 감지
+  useEffect(() => {
+    if (!generating) { userScrolledRef.current = false; return; }
+    const scrollParent = streamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+    const target = scrollParent || window;
+    const handler = () => { userScrolledRef.current = true; };
+    target.addEventListener("wheel", handler, { passive: true });
+    target.addEventListener("touchmove", handler, { passive: true });
+    return () => { target.removeEventListener("wheel", handler); target.removeEventListener("touchmove", handler); };
+  }, [generating]);
 
   useEffect(() => {
-    if (streamingLyrics) {
-      // pre 내부 스크롤
-      if (streamRef.current) streamRef.current.scrollTop = streamRef.current.scrollHeight;
-      // 부모 스크롤 컨테이너도 하단으로
-      const scrollParent = streamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
-      if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
-      // fallback: window
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
+    if (!streamingLyrics || userScrolledRef.current) return;
+    if (streamRef.current) streamRef.current.scrollTop = streamRef.current.scrollHeight;
+    const scrollParent = streamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+    if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
   }, [streamingLyrics]);
 
   // API 호출 (스트리밍)
@@ -445,7 +452,22 @@ export default function LyricsSection({
     setGenerating(true);
     try {
       const nextNum = trackNumber + 1;
-      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 이전 트랙과 같은 톤/무드/장르 유지, 완전히 새로운 가사. 같은 앨범의 다른 곡처럼. 시점/장면/소품을 바꾸고 Hook도 새로 만들어라.`;
+      const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===
+이것은 같은 앨범의 ${nextNum}번째 곡이다. 핵심 규칙:
+
+1. 같은 앨범의 "다른 곡"이다 — 비슷한 곡이 아니라 완전히 다른 곡
+2. 장르/무드 방향은 유지하되, 다음을 모두 바꿔라:
+   - BPM을 ±10~20 변경
+   - 리듬 패턴을 완전히 다르게 (예: 직진→스윙, 4/4→셔플)
+   - 핵심 악기 1~2개 교체 (예: 피아노→기타, 808→라이브드럼)
+   - 곡 구조의 에너지 분배를 반전 (1번이 잔잔→폭발이었으면 이번은 폭발→잔잔)
+3. 가사는 같은 세계관이지만:
+   - 화자/시점을 바꿔라 (1인칭→2인칭, 또는 다른 인물 시점)
+   - 시간대를 바꿔라 (낮→밤, 과거→현재, 계절 변경)
+   - 장면/공간을 완전히 바꿔라 (실내→야외, 도시→자연)
+   - Hook은 반드시 새로운 구절 — 이전 곡 Hook과 한 단어도 겹치면 안 됨
+   - 소품/이미지를 전부 교체
+4. 이전 곡을 들은 적 없는 것처럼 처음부터 새로 써라`;
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -931,7 +953,12 @@ export default function LyricsSection({
                 setGenerating(true); setError(""); setStreamingLyrics("");
                 try {
                   const nextNum = trackNumber + 1;
-                  const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 같은 톤/무드, 새 가사. Style 동일 유지.`;
+                  const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===
+같은 앨범 ${nextNum}번째 곡. Style은 유지하되 가사는 완전히 다르게:
+- 화자/시점 변경, 시간대 변경, 장면/공간 교체
+- Hook 완전 새로 — 이전 곡과 한 단어도 겹치지 마
+- 소품/이미지 전부 교체
+- 이전 곡을 들은 적 없는 것처럼 써라`;
                   const res = await fetch("/api/lyrics-stream", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt, apiKey, provider }),
