@@ -11,15 +11,14 @@ const PIPELINE = [
   { id: "timeSignature", label: "박자" },
   { id: "era", label: "시대" },
   { id: "texture", label: "텍스처" },
-  { id: "vocal", label: "보컬" },
   { id: "reverb", label: "리버브" },
   { id: "style", label: "Style" },
   { id: "lyrics", label: "Lyrics" },
 ];
 
 // Style/Lyrics 탭의 파이프라인 인덱스
-const STYLE_INDEX = 10;
-const LYRICS_INDEX = 11;
+const STYLE_INDEX = 9;
+const LYRICS_INDEX = 10;
 
 interface ProgressBarProps {
   activeIndex: number;

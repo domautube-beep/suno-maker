@@ -232,7 +232,7 @@ export default function Home() {
           <div className="w-full max-w-5xl flex">
             {/* 왼쪽: 결과 */}
             <div className="flex-1 min-w-0 overflow-y-auto border-r border-border">
-              <ProgressBar activeIndex={10} appPhase="result" />
+              <ProgressBar activeIndex={9} appPhase="result" />
 
               <div className="p-4 space-y-4 pb-8">
                 {/* 처음부터 다시 */}
