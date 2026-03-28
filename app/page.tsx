@@ -212,6 +212,8 @@ export default function Home() {
                 key={chatKey}
                 onComplete={handleComplete}
                 onInputChange={handleInputChange}
+                apiKey={apiKey}
+                provider={provider || undefined}
               />
             </div>
             <div className="w-[400px] flex-shrink-0 hidden lg:flex flex-col overflow-hidden">

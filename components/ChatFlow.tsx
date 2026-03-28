@@ -16,9 +16,110 @@ import { getGenrePreset, getTempoLabel } from "@/lib/genrePresets";
 import ConfirmCard from "./ConfirmCard";
 import ProgressBar from "./ProgressBar";
 
+// 핵심 문장 입력 + "더 풍부하게" AI 확장 기능
+function OneLinerInput({ placeholder, onSubmit, apiKey, provider }: {
+  placeholder?: string;
+  onSubmit: (val: string) => void;
+  apiKey?: string;
+  provider?: string;
+}) {
+  const [value, setValue] = useState("");
+  const [expanding, setExpanding] = useState(false);
+
+  const handleExpand = async () => {
+    if (!value.trim() || !apiKey || !provider) return;
+    if (!confirm("AI가 핵심 문장을 더 풍부하게 확장합니다. API 크레딧이 소량 소모됩니다. 계속할까요?")) return;
+
+    setExpanding(true);
+    try {
+      const res = await fetch("/api/lyrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `사용자가 곡의 핵심 문장을 짧게 썼습니다: "${value.trim()}"
+
+이 문장을 더 풍부하고 구체적으로 확장해줘. 규칙:
+1. 원래 감정과 의미를 유지하면서 장면/상황/감각을 더 구체적으로 서술
+2. 2~3문장으로 확장 (원문의 약 3배)
+3. 가사가 아니라 "곡의 방향을 설명하는 문장"으로
+4. 한국어로 작성
+5. 확장된 문장만 출력 (설명 없이)`,
+          apiKey,
+          provider,
+        }),
+      });
+      const data = await res.json();
+      if (data.lyrics) {
+        setValue(data.lyrics.trim());
+      }
+    } catch { /* 무시 */ }
+    setExpanding(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2 items-center">
+        <input
+          type="text"
+          className="flex-1 bg-white border border-border rounded-full px-4 py-2.5 text-sm text-text-primary placeholder-text-disabled focus:outline-none focus:border-foreground transition-colors"
+          placeholder={placeholder || "이 노래가 뭔지 한 문장으로..."}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && value.trim()) { e.preventDefault(); onSubmit(value.trim()); } }}
+        />
+        <button
+          onClick={() => value.trim() && onSubmit(value.trim())}
+          disabled={!value.trim()}
+          style={{ backgroundColor: value.trim() ? "#0a0a0a" : "#e5e5e5" }}
+          className="h-10 w-10 rounded-full flex items-center justify-center text-white flex-shrink-0 hover:opacity-80 transition-all"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 글자를 입력하면 "더 풍부하게" 버튼 표시 */}
+      {value.trim().length > 0 && value.trim().length < 30 && apiKey && (
+        <button
+          onClick={handleExpand}
+          disabled={expanding}
+          style={{
+            padding: "8px 16px", borderRadius: "9999px", fontSize: "12px", fontWeight: 600,
+            backgroundColor: expanding ? "#e5e5e5" : "#fff7ed",
+            color: expanding ? "#a3a3a3" : "#f97316",
+            border: "1px solid rgba(249,115,22,0.3)",
+            cursor: expanding ? "wait" : "pointer",
+            display: "flex", alignItems: "center", gap: "6px",
+          }}
+        >
+          {expanding ? (
+            <>
+              <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24">
+                <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
+                <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              확장 중...
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              AI로 더 풍부하게
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
 interface ChatFlowProps {
   onComplete: (inputs: SunoInput) => void;
   onInputChange: (inputs: Partial<SunoInput>) => void;
+  apiKey?: string;
+  provider?: string;
 }
 
 const DEFAULT_INPUT: SunoInput = {
@@ -34,7 +135,7 @@ const DEFAULT_INPUT: SunoInput = {
   language: "",
 };
 
-export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
+export default function ChatFlow({ onComplete, onInputChange, apiKey, provider }: ChatFlowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [inputs, setInputs] = useState<SunoInput>(DEFAULT_INPUT);
@@ -249,7 +350,16 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
                 />
               )}
 
-              {step.type === "text" && step.id !== "vibe" && step.id !== "instruments" && (
+              {step.type === "text" && step.id === "oneLiner" && (
+                <OneLinerInput
+                  placeholder={step.placeholder}
+                  onSubmit={(val) => handleAnswer(step.id, val)}
+                  apiKey={apiKey}
+                  provider={provider}
+                />
+              )}
+
+              {step.type === "text" && step.id !== "vibe" && step.id !== "instruments" && step.id !== "oneLiner" && (
                 <TextInput
                   placeholder={step.placeholder}
                   required={step.required}
