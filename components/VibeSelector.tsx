@@ -88,6 +88,21 @@ function getRecommended(oneLiner: string, genre: string): Set<string> {
     "Funk": ["그루비", "에너지틱", "따뜻한", "중독적"],
     "Trance": ["몽환적", "에너지틱", "공간감", "중독적"],
     "Epic": ["웅장한", "폭발적", "긴장감", "몰입감"],
+    "Gangsta Rap": ["어두운", "거친", "중독적", "무거운", "에너지틱"],
+    "Drill": ["어두운", "거친", "긴장감", "중독적"],
+    "Emo Rap": ["우울한", "감성적", "어두운", "몽환적"],
+    "Gospel": ["따뜻한", "웅장한", "밝은", "서정적"],
+    "Soul": ["따뜻한", "부드러운", "감성적", "아날로그"],
+    "Dubstep": ["폭발적", "거친", "에너지틱", "디지털"],
+    "Drum and Bass": ["에너지틱", "긴장감", "중독적", "격렬한"],
+    "Latin": ["에너지틱", "따뜻한", "그루비", "밝은"],
+    "Afrobeats": ["그루비", "에너지틱", "따뜻한", "중독적"],
+    "Country": ["따뜻한", "서정적", "편안한", "아날로그"],
+    "Folk": ["따뜻한", "편안한", "서정적", "친밀한"],
+    "Progressive Rock": ["실험적", "웅장한", "복잡한", "몰입감"],
+    "Grunge": ["거친", "우울한", "격렬한", "아날로그"],
+    "New Wave": ["레트로", "실험적", "디지털", "에너지틱"],
+    "Shoegaze": ["몽환적", "거친", "공간감", "무거운"],
   };
 
   // 장르 기반 추천 추가
@@ -110,7 +125,12 @@ function getRecommended(oneLiner: string, genre: string): Set<string> {
   if (nostalgicWords.some((w) => oneLiner.includes(w))) { rec.add("몽환적"); rec.add("감성적"); rec.add("쓸쓸한"); }
   if (intenseWords.some((w) => oneLiner.includes(w))) { rec.add("격렬한"); rec.add("폭발적"); }
 
-  if (rec.size === 0) { rec.add("감성적"); rec.add("몽환적"); rec.add("중독적"); }
+  // 기본값 — 랜덤하게 3개 선택
+  if (rec.size === 0) {
+    const defaults = ["감성적", "몽환적", "중독적", "그루비", "에너지틱", "따뜻한", "어두운", "세련된", "편안한", "거친"];
+    const shuffled = defaults.sort(() => Math.random() - 0.5);
+    shuffled.slice(0, 3).forEach((v) => rec.add(v));
+  }
 
   return rec;
 }
