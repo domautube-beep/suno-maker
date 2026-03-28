@@ -21,144 +21,142 @@ type SectionConfig = { categories: SelectorCategory[]; singleSelect?: boolean } 
 const SECTION_SELECTOR: Record<string, SectionConfig> = {
   identity: null, // 직접 입력
 
-  // 장르 선택 섹션 (단일 선택)
+  // 장르 — value를 표시명으로 (GenreSelector와 일치)
   genre: {
     singleSelect: true,
     categories: [
-      { label: "장르", options: [
-        { label: "K-Pop", value: "synth-driven, layered hooks, 4/4 pulse" },
-        { label: "R&B", value: "groove-locked, laid-back pocket, neo-soul influence" },
-        { label: "힙합", value: "808 bass, trap hi-hats, boom-bap elements" },
-        { label: "발라드", value: "piano-driven, emotional build, orchestral swells" },
-        { label: "EDM", value: "build-drop structure, synthesizer lead, four-on-the-floor" },
-        { label: "Lo-Fi", value: "tape saturation, dusty samples, jazzy chords" },
-        { label: "록", value: "electric guitar driven, drum kit energy, distorted edge" },
-        { label: "트로트", value: "melodic hook density, bright vocal presence, traditional bounce" },
-        { label: "재즈", value: "complex chord voicing, swing groove, improvisation space" },
-        { label: "시네마틱", value: "orchestral layers, epic scale, dramatic dynamics" },
-        { label: "팝", value: "clean production, catchy hooks, radio-ready mix" },
-        { label: "인디", value: "unique texture, experimental arrangement, lo-fi character" },
+      { label: "팝 계열", options: [
+        { label: "K-Pop", value: "K-Pop" },
+        { label: "Pop", value: "Pop" },
+        { label: "Dance Pop", value: "Dance Pop" },
+        { label: "City Pop", value: "City Pop" },
+        { label: "Disco / Funk", value: "Disco / Funk" },
+      ]},
+      { label: "R&B / 소울", options: [
+        { label: "R&B / Soul", value: "R&B / Soul" },
+        { label: "Neo Soul", value: "Neo Soul" },
+        { label: "Gospel", value: "Gospel" },
+      ]},
+      { label: "힙합", options: [
+        { label: "Hip-Hop", value: "Hip-Hop" },
+        { label: "Trap", value: "Trap" },
+        { label: "Boom Bap", value: "Boom Bap" },
+      ]},
+      { label: "감성", options: [
+        { label: "Ballad", value: "Ballad" },
+        { label: "Lo-Fi", value: "Lo-Fi" },
+        { label: "Acoustic", value: "Acoustic" },
+      ]},
+      { label: "록/메탈", options: [
+        { label: "Rock", value: "Rock" },
+        { label: "Alt / Indie", value: "Alt / Indie" },
+        { label: "Metal", value: "Metal" },
+      ]},
+      { label: "일렉트로닉", options: [
+        { label: "EDM / Dance", value: "EDM / Dance" },
+        { label: "House", value: "House" },
+        { label: "Techno", value: "Techno" },
+        { label: "Synthwave", value: "Synthwave" },
+        { label: "Ambient", value: "Ambient" },
+      ]},
+      { label: "클래식/월드", options: [
+        { label: "Jazz", value: "Jazz" },
+        { label: "Blues", value: "Blues" },
+        { label: "Cinematic", value: "Cinematic" },
+        { label: "Trot", value: "Trot" },
+        { label: "Reggae", value: "Reggae" },
+        { label: "Latin", value: "Latin" },
       ]},
     ],
   },
 
-  // 시대 선택 섹션 (단일 선택)
+  // 시대
   era: {
     singleSelect: true,
     categories: [
       { label: "시대", options: [
-        { label: "80년대", value: "80s synth character, gated reverb, drum machine" },
-        { label: "90년대", value: "90s warm pads, groovy bass, natural drums" },
-        { label: "2000년대", value: "Y2K glitch, pop-hybrid, digital sheen" },
-        { label: "2010년대", value: "modern clean production, EDM influence, polished mix" },
-        { label: "2020년대", value: "hyperpop elements, trendy mixing, genre-fluid" },
-        { label: "미래적", value: "experimental synthesis, unconventional structure" },
-        { label: "빈티지", value: "analog warmth, vinyl character, classic recording" },
+        { label: "80년대", value: "80s" },
+        { label: "90년대", value: "90s" },
+        { label: "2000년대", value: "2000s" },
+        { label: "2010년대", value: "2010s" },
+        { label: "2020년대", value: "2020s" },
+        { label: "미래적", value: "futuristic" },
+        { label: "빈티지", value: "vintage" },
       ]},
     ],
   },
 
-  // 텍스처 선택 섹션 — id는 "texture-step"으로 vibe의 texture와 구분
+  // 텍스처 (질감)
   "texture-step": {
     singleSelect: true,
     categories: [
       { label: "질감", options: [
-        { label: "Lo-Fi 따뜻함", value: "tape saturation, vinyl crackle, warm compression" },
-        { label: "깔끔한 디지털", value: "precision mixing, clean synthesis, modern clarity" },
-        { label: "아날로그 빈티지", value: "analog warmth, soft compression, vintage color" },
-        { label: "거친 질감", value: "raw distortion, aggressive attack, unpolished edge" },
-        { label: "몽환적", value: "wide reverb, phase effects, ethereal layers" },
-        { label: "넓은 공간감", value: "wide stereo, ambient layers, spatial depth" },
-        { label: "풍성한 레이어", value: "layered stacking, full arrangement, wall of sound" },
-        { label: "미니멀", value: "sparse elements, space as instrument, restraint" },
+        { label: "Lo-Fi 따뜻함", value: "lofi_warm" },
+        { label: "깔끔한 디지털", value: "clean_digital" },
+        { label: "아날로그 빈티지", value: "analog_vintage" },
+        { label: "거친 질감", value: "raw_gritty" },
+        { label: "몽환적", value: "dreamy" },
+        { label: "넓은 공간감", value: "spacious" },
+        { label: "풍성한 레이어", value: "dense" },
+        { label: "미니멀", value: "minimal" },
       ]},
     ],
   },
 
-  // 리버브 선택 섹션 (단일 선택)
+  // 리버브
   reverb: {
     singleSelect: true,
     categories: [
       { label: "리버브", options: [
-        { label: "Dry (가까운)", value: "close-mic, intimate distance, minimal reverb" },
-        { label: "Room", value: "medium room, balanced wet/dry, natural space" },
-        { label: "Hall (넓은 홀)", value: "large hall, wide reverb, distant presence" },
-        { label: "Cathedral (대성당)", value: "cathedral reverb, massive tail, sacred space" },
-        { label: "Lo-Fi 필터", value: "lo-fi filtered, tape warmth, vintage compression" },
-        { label: "Plate (스튜디오)", value: "plate reverb, vintage warm, classic studio" },
+        { label: "Dry (가까운)", value: "dry" },
+        { label: "Room", value: "room" },
+        { label: "Hall (넓은 홀)", value: "hall" },
+        { label: "Cathedral (대성당)", value: "cathedral" },
+        { label: "Lo-Fi 필터", value: "lofi_filter" },
+        { label: "Plate (스튜디오)", value: "plate" },
       ]},
     ],
   },
 
+  // 느낌/분위기 (vibe) — 멀티셀렉트
   texture: {
     categories: [
       { label: "분위기", multiSelect: true, options: [
-        { label: "어두운", value: "dark minor chords, shadowy reverb" },
-        { label: "몽환적", value: "dreamy pads, ethereal atmosphere" },
-        { label: "밝은", value: "bright major progression, airy high-end" },
-        { label: "감성적", value: "emotional dynamics, gentle swells" },
-        { label: "긴장감", value: "tension building, suspenseful progression" },
+        { label: "어두운", value: "어두운" },
+        { label: "몽환적", value: "몽환적" },
+        { label: "밝은", value: "밝은" },
+        { label: "감성적", value: "감성적" },
+        { label: "긴장감", value: "긴장감" },
       ]},
       { label: "에너지", multiSelect: true, options: [
-        { label: "에너지틱", value: "driving rhythm, punchy drums, high energy" },
-        { label: "편안한", value: "relaxed groove, gentle rhythm" },
-        { label: "웅장한", value: "epic orchestral swells, cinematic scale" },
-        { label: "미니멀", value: "stripped back, minimal energy" },
+        { label: "에너지틱", value: "에너지틱" },
+        { label: "편안한", value: "편안한" },
+        { label: "웅장한", value: "웅장한" },
+        { label: "미니멀", value: "미니멀" },
       ]},
       { label: "질감", multiSelect: true, options: [
-        { label: "따뜻한", value: "warm analog tones, soft saturation" },
-        { label: "차가운", value: "cold digital textures, metallic sheen" },
-        { label: "거친", value: "raw distortion, gritty texture" },
-        { label: "레트로", value: "vintage tape warmth, retro character" },
-        { label: "Lo-Fi", value: "lo-fi warmth, vinyl crackle" },
+        { label: "따뜻한", value: "따뜻한" },
+        { label: "차가운", value: "차가운" },
+        { label: "거친", value: "거친" },
+        { label: "레트로", value: "레트로" },
       ]},
     ],
   },
-  vocal: {
-    categories: [
-      { label: "타입", options: [
-        { label: "남성 저음", value: "male, low baritone, deep chest resonance" },
-        { label: "남성 중음", value: "male, mid-range tenor, warm natural presence" },
-        { label: "남성 고음", value: "male, high tenor, bright falsetto capable" },
-        { label: "여성 저음", value: "female, low alto, rich warm depth" },
-        { label: "여성 중음", value: "female, mid-range mezzo, clear and balanced" },
-        { label: "여성 고음", value: "female, high soprano, airy and light" },
-      ]},
-      { label: "음색", options: [
-        { label: "허스키", value: "husky grain, rough warmth, textured edge" },
-        { label: "매끈한", value: "smooth silk, clean resonance, polished tone" },
-        { label: "공기감", value: "airy breathy, whisper-close, soft presence" },
-        { label: "파워풀", value: "powerful chest, full projection, bold resonance" },
-        { label: "따뜻한", value: "warm natural, soft grain, intimate tone" },
-        { label: "소울풀", value: "soulful richness, gospel-influenced, deep emotion" },
-      ]},
-      { label: "딜리버리", options: [
-        { label: "대화체", value: "conversational intimacy, natural phrasing" },
-        { label: "감정폭발", value: "emotional outburst, crescendo peaks" },
-        { label: "나른한", value: "laid-back lazy, half-whisper, effortless cool" },
-        { label: "리드미컬", value: "rhythmic precision, groove-locked" },
-        { label: "랩", value: "rap flow, sharp articulation, punchline delivery" },
-        { label: "속삭임", value: "whisper singing, ASMR-close, breath-heavy" },
-      ]},
-      { label: "공간감", options: [
-        { label: "Dry", value: "close-mic dry, intimate distance" },
-        { label: "Room", value: "medium room, balanced wet/dry" },
-        { label: "Hall", value: "large hall, wide reverb, distant" },
-        { label: "Lo-Fi", value: "lo-fi filtered, tape warmth" },
-      ]},
-    ],
-  },
+
+  // 언어
   "lyrics-config": {
     singleSelect: true,
     categories: [
       { label: "언어", options: [
-        { label: "한국어", value: "Korean lyrics, 2-5 eojeol phrasing, vowel-chain hooks" },
-        { label: "English", value: "English lyrics, natural stress pattern, singable phrases" },
-        { label: "日本語", value: "Japanese lyrics, mora-based phrasing, vowel-open hooks" },
-        { label: "한국어+English", value: "Korean + English mixed lyrics, bilingual hook design" },
+        { label: "한국어", value: "ko" },
+        { label: "English", value: "en" },
+        { label: "日本語", value: "ja" },
+        { label: "한국어+English", value: "mixed" },
       ]},
     ],
   },
+
+  // 구조
   structure: {
     singleSelect: true,
     categories: [
@@ -170,6 +168,7 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
       ]},
     ],
   },
+
   engine: null,
 };
 

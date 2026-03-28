@@ -66,98 +66,37 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentInputs, phase]);
 
-  // 영문 설명 → 내부 키 역매핑 (프리뷰에서 선택한 값을 원래 키로 변환)
-  const reverseMap: Record<string, Record<string, string>> = {
-    genre: {
-      "synth-driven, layered hooks, 4/4 pulse": "kpop",
-      "groove-locked, laid-back pocket, neo-soul influence": "rnb",
-      "808 bass, trap hi-hats, boom-bap elements": "hiphop",
-      "piano-driven, emotional build, orchestral swells": "ballad",
-      "build-drop structure, synthesizer lead, four-on-the-floor": "edm",
-      "tape saturation, dusty samples, jazzy chords": "lofi",
-      "electric guitar driven, drum kit energy, distorted edge": "rock",
-      "melodic hook density, bright vocal presence, traditional bounce": "trot",
-      "complex chord voicing, swing groove, improvisation space": "jazz",
-      "orchestral layers, epic scale, dramatic dynamics": "cinematic",
-      "clean production, catchy hooks, radio-ready mix": "pop",
-      "unique texture, experimental arrangement, lo-fi character": "indie",
-    },
-    era: {
-      "80s synth character, gated reverb, drum machine": "80s",
-      "90s warm pads, groovy bass, natural drums": "90s",
-      "Y2K glitch, pop-hybrid, digital sheen": "2000s",
-      "modern clean production, EDM influence, polished mix": "2010s",
-      "hyperpop elements, trendy mixing, genre-fluid": "2020s",
-      "experimental synthesis, unconventional structure": "futuristic",
-      "analog warmth, vinyl character, classic recording": "vintage",
-    },
-    "texture-step": {
-      "tape saturation, vinyl crackle, warm compression": "lofi_warm",
-      "precision mixing, clean synthesis, modern clarity": "clean_digital",
-      "analog warmth, soft compression, vintage color": "analog_vintage",
-      "raw distortion, aggressive attack, unpolished edge": "raw_gritty",
-      "wide reverb, phase effects, ethereal layers": "dreamy",
-      "wide stereo, ambient layers, spatial depth": "spacious",
-      "layered stacking, full arrangement, wall of sound": "dense",
-      "sparse elements, space as instrument, restraint": "minimal",
-    },
-    reverb: {
-      "close-mic, intimate distance, minimal reverb": "dry",
-      "medium room, balanced wet/dry, natural space": "room",
-      "large hall, wide reverb, distant presence": "hall",
-      "cathedral reverb, massive tail, sacred space": "cathedral",
-      "lo-fi filtered, tape warmth, vintage compression": "lofi_filter",
-      "plate reverb, vintage warm, classic studio": "plate",
-    },
-    "lyrics-config": {
-      "Korean lyrics, 2-5 eojeol phrasing, vowel-chain hooks": "ko",
-      "English lyrics, natural stress pattern, singable phrases": "en",
-      "Japanese lyrics, mora-based phrasing, vowel-open hooks": "ja",
-      "Korean + English mixed lyrics, bilingual hook design": "mixed",
-    },
-  };
-
-  // 프리뷰 섹션 수정
-  const handleSectionUpdate = useCallback((sectionId: string, newEnglish: string) => {
+  // 프리뷰 섹션 수정 — value가 이제 내부 키 그대로이므로 역매핑 불필요
+  const handleSectionUpdate = useCallback((sectionId: string, newValue: string) => {
     const fieldMap: Record<string, keyof SunoInput> = {
       genre: "genre", texture: "vibe", "texture-step": "texture",
-      era: "era", vocal: "vocal", reverb: "reverb",
+      era: "era", reverb: "reverb",
       "lyrics-config": "language", instruments: "instruments",
     };
 
     if (sectionId === "structure") {
-      setOutput((prev) => {
-        if (!prev) return prev;
-        if (prev.lyrics.includes("[Song Form:")) {
-          return { ...prev, lyrics: prev.lyrics.replace(/\[Song Form:.*?\]/, `[Song Form: ${newEnglish}]`) };
-        }
-        return { ...prev, lyrics: prev.lyrics + `\n\n[Song Form: ${newEnglish}]` };
-      });
       setPreviewSections((prev) =>
-        prev.map((s) => s.id === "structure" ? { ...s, english: newEnglish } : s)
+        prev.map((s) => s.id === "structure" ? { ...s, english: newValue } : s)
       );
       flashToastRef.current();
       return;
     }
 
     if (sectionId === "identity") {
-      setIdentityOverride(newEnglish);
+      setIdentityOverride(newValue);
       setPreviewSections((prev) =>
-        prev.map((s) => s.id === "identity" ? { ...s, english: newEnglish } : s)
+        prev.map((s) => s.id === "identity" ? { ...s, english: newValue } : s)
       );
       return;
     }
 
     const inputKey = fieldMap[sectionId];
     if (inputKey) {
-      // 역매핑: 영문 설명 → 내부 키값으로 변환
-      const sectionReverseMap = reverseMap[sectionId];
-      const resolvedValue = sectionReverseMap?.[newEnglish] || newEnglish;
-      setCurrentInputs((prev) => ({ ...prev, [inputKey]: resolvedValue }));
+      setCurrentInputs((prev) => ({ ...prev, [inputKey]: newValue }));
 
       // 프리뷰 섹션도 즉시 업데이트 (useEffect 대기 없이)
       setPreviewSections((prev) =>
-        prev.map((s) => s.id === sectionId ? { ...s, english: newEnglish } : s)
+        prev.map((s) => s.id === sectionId ? { ...s, english: newValue } : s)
       );
       flashToastRef.current();
     }
