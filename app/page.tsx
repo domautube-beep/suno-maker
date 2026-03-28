@@ -7,9 +7,12 @@ import { generateDemo } from "@/lib/demoGenerator";
 import Header from "@/components/Header";
 import ChatFlow from "@/components/ChatFlow";
 import LivePreview from "@/components/LivePreview";
-import OutputPanel from "@/components/OutputPanel";
+import StyleResult from "@/components/StyleResult";
+import LyricsSection from "@/components/LyricsSection";
+import ProgressBar from "@/components/ProgressBar";
 
 export default function Home() {
+  // 3단계 phase: chat → style → lyrics
   const [phase, setPhase] = useState<AppPhase>("chat");
   const [previewSections, setPreviewSections] = useState<PreviewSection[]>([]);
   const [currentInputs, setCurrentInputs] = useState<Partial<SunoInput>>({});
@@ -19,16 +22,11 @@ export default function Home() {
   const [chatKey, setChatKey] = useState(0); // ChatFlow 강제 리마운트용
   const [showToast, setShowToast] = useState(false);
   const [trackNumber, setTrackNumber] = useState(1);
-  const [modifyHistory, setModifyHistory] = useState<
-    { request: string; response: string }[]
-  >([]);
 
-  // result phase에서 currentInputs 변경 시 output 재생성
   // useRef로 flashToast 참조 — 의존성 배열 무한루프 방지
   const flashToastRef = useRef<() => void>(() => {});
 
   // identity 섹션 직접 수정 시 영문 오버라이드 저장
-  // (previewEngine은 oneLiner(한국어)를 기반으로 섹션을 생성하므로 별도 보관)
   const [identityOverride, setIdentityOverride] = useState<string | null>(null);
 
   // 대화 중 입력 변경
@@ -49,9 +47,9 @@ export default function Home() {
     flashToastRef.current = flashToast;
   }, [flashToast]);
 
-  // currentInputs 변경 → result phase일 때 output + 프리뷰 자동 재생성
+  // currentInputs 변경 → style/lyrics phase일 때 output + 프리뷰 자동 재생성
   useEffect(() => {
-    if (phase !== "result") return;
+    if (phase === "chat") return;
     const inputs = currentInputs as SunoInput;
     if (!inputs.oneLiner) return;
 
@@ -76,11 +74,11 @@ export default function Home() {
   // 프리뷰 섹션 수정 → currentInputs만 업데이트
   // output + 프리뷰 재생성은 currentInputs 감지 useEffect가 담당
   const handleSectionUpdate = useCallback((sectionId: string, newEnglish: string) => {
-    // 섹션 ID → SunoInput 필드 매핑 (previewEngine이 생성하는 모든 섹션 ID 포함)
+    // 섹션 ID → SunoInput 필드 매핑
     const fieldMap: Record<string, keyof SunoInput> = {
       genre: "genre",
-      texture: "vibe",         // vibe 기반 TEXTURE & MOOD 섹션
-      "texture-step": "texture", // texture 스텝 기반 TEXTURE 섹션
+      texture: "vibe",
+      "texture-step": "texture",
       era: "era",
       vocal: "vocal",
       reverb: "reverb",
@@ -106,9 +104,7 @@ export default function Home() {
 
     if (sectionId === "identity") {
       // identity는 oneLiner(한국어) 기반이므로 영문 오버라이드만 저장
-      // currentInputs.oneLiner는 건드리지 않음 → 한국어 분석 로직 유지
       setIdentityOverride(newEnglish);
-      // 프리뷰만 즉시 업데이트 (useEffect 재실행 없이)
       setPreviewSections((prev) =>
         prev.map((s) => s.id === "identity" ? { ...s, english: newEnglish } : s)
       );
@@ -117,35 +113,24 @@ export default function Home() {
 
     const inputKey = fieldMap[sectionId];
     if (inputKey) {
-      // currentInputs 업데이트 → useEffect가 output + 프리뷰 재생성 담당
       setCurrentInputs((prev) => ({ ...prev, [inputKey]: newEnglish }));
     }
   }, []);
 
-  // 대화 완료 (확인 버튼)
-  const handleComplete = useCallback((inputs: SunoInput) => {
+  // Phase 1 완료 — chat에서 style로 전환
+  const handleChatComplete = useCallback((inputs: SunoInput) => {
     console.log("=== R3ALAUDE 입력 ===");
     console.log(JSON.stringify(inputs, null, 2));
 
     const { output: demoOutput, forensicLog: log } = generateDemo(inputs);
     setOutput(demoOutput);
     setForensicLog(log);
-    setModifyHistory([]);
-    setPhase("result");
+    setPhase("style");
   }, []);
 
-  // 수정 요청
-  const handleModify = useCallback((request: string) => {
-    if (!request.trim()) return;
-    setModifyHistory((prev) => [
-      ...prev,
-      {
-        request,
-        response: `수정 요청 접수: "${request}"\n→ Claude Code에서 반영하면 업데이트됩니다.`,
-      },
-    ]);
-    console.log("=== R3ALAUDE 수정 요청 ===");
-    console.log(request);
+  // Phase 2 완료 — style에서 lyrics로 전환
+  const handleGoToLyrics = useCallback(() => {
+    setPhase("lyrics");
   }, []);
 
   // 변주 생성 — 같은 톤/무드, 다른 조합
@@ -153,30 +138,28 @@ export default function Home() {
     const inputs = currentInputs as SunoInput;
     if (!inputs.oneLiner && !inputs.genre) return;
 
-    // 트랙 넘버 증가
     setTrackNumber((prev) => prev + 1);
 
-    // 같은 inputs로 재생성 (templateEngine이 랜덤 조합하므로 다른 결과)
     const { output: newOutput, forensicLog: newLog } = generateDemo(inputs);
     setOutput(newOutput);
     setForensicLog(newLog + `\n\n[Track ${trackNumber + 1} — 변주 생성]`);
-    setModifyHistory([]);
 
     // 프리뷰도 갱신
     const sections = generatePreview(currentInputs);
     setPreviewSections(sections);
 
+    // style phase로 돌아가서 새 Style 확인
+    setPhase("style");
     flashToastRef.current();
   }, [currentInputs, trackNumber]);
 
-  // 리셋
+  // 전체 리셋
   const handleReset = useCallback(() => {
     setPhase("chat");
     setPreviewSections([]);
     setCurrentInputs({});
     setOutput(null);
     setForensicLog("");
-    setModifyHistory([]);
     setGenerating(false);
     setIdentityOverride(null);
     setTrackNumber(1);
@@ -218,13 +201,14 @@ export default function Home() {
         }
       `}</style>
 
+      {/* Phase 1: 입력 단계 */}
       {phase === "chat" && (
         <div className="flex-1 flex justify-center overflow-hidden">
           <div className="w-full max-w-5xl flex">
             <div className="flex-1 min-w-0 overflow-y-auto border-r border-border">
               <ChatFlow
                 key={chatKey}
-                onComplete={handleComplete}
+                onComplete={handleChatComplete}
                 onInputChange={handleInputChange}
               />
             </div>
@@ -240,24 +224,68 @@ export default function Home() {
         </div>
       )}
 
-      {phase === "result" && output && (
+      {/* Phase 2: Style 단계 */}
+      {phase === "style" && output && (
         <div className="flex-1 flex justify-center overflow-hidden">
           <div className="w-full max-w-5xl flex">
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <OutputPanel
+            <div className="flex-1 min-w-0 overflow-hidden flex flex-col">
+              {/* style phase에서 프로그레스바 — Style 탭 활성화 */}
+              <ProgressBar activeIndex={10} appPhase="style" />
+              <div className="flex-1 overflow-hidden">
+              <StyleResult
                 output={output}
                 forensicLog={forensicLog}
-                onModify={handleModify}
-                onBack={handleReset}
-                modifyHistory={modifyHistory}
                 onOutputEdit={(field, newContent) => {
                   setOutput((prev) =>
                     prev ? { ...prev, [field]: newContent } : prev
                   );
                 }}
+                onNextPhase={handleGoToLyrics}
+                onBack={handleReset}
+              />
+              </div>
+            </div>
+            <div className="w-[400px] flex-shrink-0 hidden lg:flex flex-col overflow-hidden border-l border-border">
+              <LivePreview
+                sections={previewSections}
+                onSectionUpdate={handleSectionUpdate}
+                isReady={true}
+                currentInputs={currentInputs}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Phase 3: Lyrics 단계 */}
+      {phase === "lyrics" && output && (
+        <div className="flex-1 flex justify-center overflow-hidden">
+          <div className="w-full max-w-5xl flex">
+            <div className="flex-1 min-w-0 overflow-hidden flex flex-col border-r border-border">
+              {/* lyrics phase에서 프로그레스바 — Lyrics 탭 활성화 */}
+              <ProgressBar activeIndex={11} appPhase="lyrics" />
+              <div className="flex-1 overflow-y-auto p-4 pb-6">
+              <button
+                onClick={() => setPhase("style")}
+                className="text-xs text-text-muted hover:text-text-primary transition-colors flex items-center gap-1 mb-4"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Style로 돌아가기
+              </button>
+              <LyricsSection
+                vocalProfile={output.lyrics}
+                style={output.style}
+                onLyricsUpdate={(newLyrics) => {
+                  setOutput((prev) =>
+                    prev ? { ...prev, lyrics: newLyrics } : prev
+                  );
+                }}
                 onGenerateVariation={handleGenerateVariation}
                 trackNumber={trackNumber}
               />
+              </div>
             </div>
             <div className="w-[400px] flex-shrink-0 hidden lg:flex flex-col overflow-hidden border-l border-border">
               <LivePreview

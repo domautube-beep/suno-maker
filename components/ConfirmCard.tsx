@@ -78,6 +78,7 @@ function getDisplayValue(key: string, value: string, inputs: SunoInput): { text:
 }
 
 export default function ConfirmCard({ inputs, onConfirm, onReset, onEditStep }: ConfirmCardProps) {
+  // 언어는 Lyrics 단계에서 선택하므로 여기서 제외
   const fields = [
     { key: "oneLiner", label: "핵심" },
     { key: "genre", label: "장르" },
@@ -89,7 +90,6 @@ export default function ConfirmCard({ inputs, onConfirm, onReset, onEditStep }: 
     { key: "texture", label: "질감" },
     { key: "vocal", label: "보컬" },
     { key: "reverb", label: "리버브" },
-    { key: "language", label: "언어" },
   ];
 
   const filledCount = fields.filter((f) => {
@@ -147,7 +147,7 @@ export default function ConfirmCard({ inputs, onConfirm, onReset, onEditStep }: 
           onClick={onConfirm}
           style={{ flex: 1, backgroundColor: "#f97316", color: "#fff", padding: "12px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer" }}
         >
-          이 설정으로 프롬프트 생성하기
+          이 설정으로 Style 생성하기
         </button>
         <button
           onClick={onReset}

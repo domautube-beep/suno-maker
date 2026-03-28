@@ -29,7 +29,8 @@ export default function Header({ phase, onReset }: HeaderProps) {
             v5.5
           </span>
         </button>
-        {phase === "result" && (
+        {/* chat이 아닌 모든 phase(style, lyrics)에서 새로 만들기 표시 */}
+        {phase !== "chat" && (
           <button
             onClick={handleLogoClick}
             className="text-xs text-text-muted hover:text-text-primary transition-colors"

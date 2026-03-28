@@ -7,9 +7,12 @@ interface LyricsSectionProps {
   vocalProfile: string;
   style: string;
   onLyricsUpdate?: (lyrics: string) => void;
+  // 비슷한 곡 더 만들기 배너용 — 옵션이므로 없으면 배너 숨김
+  onGenerateVariation?: () => void;
+  trackNumber?: number;
 }
 
-export default function LyricsSection({ vocalProfile, style, onLyricsUpdate }: LyricsSectionProps) {
+export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onGenerateVariation, trackNumber = 1 }: LyricsSectionProps) {
   const [language, setLanguage] = useState("ko");
   const [lyrics, setLyrics] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -128,23 +131,8 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate }: L
           <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics</h3>
           <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>Suno Lyrics 필드에 붙여넣기</p>
         </div>
-        <button
-          onClick={() => setShowRules(!showRules)}
-          style={{ fontSize: "10px", color: "#f97316", border: "1px solid #f97316", borderRadius: "9999px", padding: "4px 12px", backgroundColor: "#fff", cursor: "pointer" }}
-        >
-          {showRules ? "규칙 닫기" : "작성 규칙 보기"}
-        </button>
       </div>
 
-      {/* 가사 작성 규칙 (토글) */}
-      {showRules && (
-        <div style={{ padding: "16px 20px", backgroundColor: "#fff7ed", borderBottom: "1px solid #e5e5e5" }}>
-          <p style={{ fontSize: "10px", fontWeight: 600, color: "#f97316", marginBottom: "8px" }}>가사 작성 규칙</p>
-          <pre style={{ fontSize: "11px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.6", maxHeight: "300px", overflowY: "auto" }}>
-            {LYRICS_RULES}
-          </pre>
-        </div>
-      )}
 
       {/* 언어 선택 */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
@@ -329,6 +317,54 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate }: L
           </div>
         )}
       </div>
+
+      {/* 비슷한 곡 더 만들기 배너 — onGenerateVariation 있을 때만 표시 */}
+      {onGenerateVariation && (
+        <div
+          style={{
+            borderTop: "1px solid #e5e5e5",
+            padding: "20px",
+            background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <div style={{
+              width: "40px", height: "40px", borderRadius: "12px",
+              backgroundColor: "#f97316", display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </div>
+            <div>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>
+                Track {trackNumber + 1} — 비슷한 곡 하나 더?
+              </p>
+              <p style={{ fontSize: "11px", color: "#737373" }}>
+                같은 톤 & 무드, 다른 변주. 앨범처럼 이어지는 플레이리스트.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onGenerateVariation}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "12px",
+              backgroundColor: "#f97316",
+              color: "#fff",
+              fontSize: "13px",
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+            }}
+            className="hover:opacity-90 transition-all"
+          >
+            비슷한 느낌으로 다음 곡 생성하기 →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

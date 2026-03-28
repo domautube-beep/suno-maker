@@ -32,4 +32,5 @@ export interface PreviewSection {
   korean: string;
 }
 
-export type AppPhase = "chat" | "result";
+// 3단계 UX 흐름: 입력 → Style 생성 → Lyrics 생성
+export type AppPhase = "chat" | "style" | "lyrics";

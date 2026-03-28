@@ -1,5 +1,7 @@
 "use client";
 
+import { AppPhase } from "@/lib/types";
+
 const PIPELINE = [
   { id: "oneLiner", label: "핵심" },
   { id: "genre", label: "장르" },
@@ -15,26 +17,41 @@ const PIPELINE = [
   { id: "lyrics", label: "Lyrics" },
 ];
 
+// Style/Lyrics 탭의 파이프라인 인덱스
+const STYLE_INDEX = 10;
+const LYRICS_INDEX = 11;
+
 interface ProgressBarProps {
   activeIndex: number;
   onStepClick?: (index: number) => void;
   completedSteps?: Set<string>; // 실제로 값이 입력된 스텝 ID
+  // phase를 받아 Style/Lyrics 탭과 실제 화면을 연결
+  appPhase?: AppPhase;
 }
 
-export default function ProgressBar({ activeIndex, onStepClick, completedSteps }: ProgressBarProps) {
+export default function ProgressBar({ activeIndex, onStepClick, completedSteps, appPhase }: ProgressBarProps) {
+  // phase 기반으로 오버라이드할 활성 인덱스 결정
+  // style phase → Style 탭(10) 활성화
+  // lyrics phase → Lyrics 탭(11) 활성화
+  // chat phase → 실제 activeIndex 사용
+  const resolvedActiveIndex =
+    appPhase === "style" ? STYLE_INDEX :
+    appPhase === "lyrics" ? LYRICS_INDEX :
+    activeIndex;
+
   return (
     <div data-progressbar style={{ padding: "24px 24px", borderBottom: "1px solid #e5e5e5", cursor: "pointer" }}>
       <div style={{ display: "flex", gap: "2px", marginBottom: "8px" }}>
         {PIPELINE.map((step, i) => {
-          const isCompleted = i < activeIndex;
-          const isCurrent = i === activeIndex;
-          // 완료된 스텝 + 미래 스텝 모두 클릭 가능 (원하는 곳으로 점프)
-          const isClickable = !!onStepClick && i !== activeIndex;
+          const isCurrent = i === resolvedActiveIndex;
+          const isClickable = !!onStepClick && i !== resolvedActiveIndex;
 
           // 실제로 값이 입력된 스텝만 오렌지
-          const hasValue = completedSteps?.has(step.id) || false;
+          // style/lyrics phase일 때는 chat 스텝(0~9)을 모두 완료된 것으로 표시
+          const isCompletedByPhase = (appPhase === "style" || appPhase === "lyrics") && i < STYLE_INDEX;
+          const hasValue = completedSteps?.has(step.id) || isCompletedByPhase || false;
           let bg = "#e5e5e5"; // 미선택: 연한 회색
-          if (hasValue) bg = "#f97316"; // 실제 입력됨: 오렌지
+          if (hasValue) bg = "#f97316"; // 입력됨: 오렌지
           if (isCurrent) bg = "#f97316"; // 현재: 오렌지 깜빡임
 
           return (
@@ -59,15 +76,15 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps }
 
       <div style={{ display: "flex" }}>
         {PIPELINE.map((step, i) => {
-          const isCompleted = i < activeIndex;
-          const isCurrent = i === activeIndex;
+          const isCurrent = i === resolvedActiveIndex;
 
-          const hasValue2 = completedSteps?.has(step.id) || false;
+          const isCompletedByPhase2 = (appPhase === "style" || appPhase === "lyrics") && i < STYLE_INDEX;
+          const hasValue2 = completedSteps?.has(step.id) || isCompletedByPhase2 || false;
           let color = "#d4d4d4"; // 미선택: 연한 회색
           let fontWeight = 400;
           if (hasValue2) { color = "#f97316"; fontWeight = 500; } // 입력됨: 오렌지
           if (isCurrent) { color = "#0a0a0a"; fontWeight = 600; } // 현재: 검정 볼드
-          const isClickable2 = !!onStepClick && i !== activeIndex;
+          const isClickable2 = !!onStepClick && i !== resolvedActiveIndex;
 
           return (
             <span
