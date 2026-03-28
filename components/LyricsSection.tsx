@@ -808,44 +808,71 @@ export default function LyricsSection({
 
       {/* 앨범 트랙 추가 — 가사 생성 완료 시에만 표시 */}
       {!generating && generatedLyrics && (
-        <div style={{
-          borderTop: "1px solid #e5e5e5",
-          background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)",
-          padding: "24px 20px",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+        <div style={{ borderTop: "1px solid #e5e5e5", padding: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
             <div style={{
-              width: "48px", height: "48px", borderRadius: "14px",
-              backgroundColor: "#f97316", display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0, fontSize: "20px",
+              width: "36px", height: "36px", borderRadius: "10px",
+              backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
             }}>
-              {trackNumber === 1 ? "💿" : trackNumber === 2 ? "🎵" : "🎶"}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </div>
             <div>
-              <p style={{ fontSize: "15px", fontWeight: 800, color: "#fff" }}>
-                Track {trackNumber + 1} 추가
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#0a0a0a" }}>
+                Track {trackNumber + 1} — 다음 곡
               </p>
-              <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>
-                같은 톤 & 무드, 다른 가사. 앨범처럼 이어지는 플레이리스트.
+              <p style={{ fontSize: "10px", color: "#a3a3a3" }}>
+                같은 톤 & 무드, 다른 가사
               </p>
             </div>
           </div>
-          <button
-            onClick={handleGenerateNextTrack}
-            style={{
-              width: "100%", padding: "14px", borderRadius: "12px",
-              backgroundColor: "#f97316", color: "#fff",
-              fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            비슷한 느낌으로 다음 곡 생성하기
-          </button>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={handleGenerateNextTrack}
+              style={{
+                flex: 1, padding: "12px", borderRadius: "10px",
+                backgroundColor: "#0a0a0a", color: "#fff",
+                fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer",
+              }}
+            >
+              Style + Lyrics 모두 생성
+            </button>
+            <button
+              onClick={async () => {
+                setGenerating(true); setError("");
+                try {
+                  const nextNum = trackNumber + 1;
+                  const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 이전 트랙과 같은 톤/무드 유지, 새 가사. Style은 동일하게 유지.`;
+                  const res = await fetch("/api/lyrics", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt, apiKey, provider }),
+                  });
+                  const data = await res.json();
+                  if (data.lyrics) {
+                    const newTrack = { id: nextNum, lyrics: data.lyrics };
+                    setTracks((prev) => [...prev, newTrack]);
+                    setActiveTrack(tracks.length);
+                    setGeneratedLyrics(data.lyrics);
+                    onLyricsUpdate?.(data.lyrics);
+                  } else { setError(data.error || "생성 실패"); }
+                } catch { setError("API 호출 실패"); }
+                setGenerating(false);
+              }}
+              style={{
+                flex: 1, padding: "12px", borderRadius: "10px",
+                backgroundColor: "#fff", color: "#0a0a0a",
+                fontSize: "12px", fontWeight: 600, border: "1px solid #d4d4d4", cursor: "pointer",
+              }}
+            >
+              Lyrics만 생성
+            </button>
+          </div>
+
           {trackNumber > 1 && (
-            <p style={{ fontSize: "10px", color: "#525252", textAlign: "center", marginTop: "8px" }}>
+            <p style={{ fontSize: "10px", color: "#a3a3a3", textAlign: "center", marginTop: "8px" }}>
               현재 {trackNumber}곡 생성됨
             </p>
           )}
