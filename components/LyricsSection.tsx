@@ -413,32 +413,57 @@ export default function LyricsSection({
     setGenerating(false);
   };
 
-  // 다음 트랙 생성 — 스타일 변주 + 새 가사
+  // 다음 트랙 생성 — 스타일 변주 + 새 가사 (스트리밍)
   const handleGenerateNextTrack = async () => {
-    setGenerating(true);
     setError("");
+    setStreamingLyrics("");
+
+    // 1. 스타일 재생성 (변주) — 완료까지 대기
+    if (onRegenerateStyle) {
+      await onRegenerateStyle();
+    }
+
+    // 2. 가사 생성 (스트리밍)
+    setGenerating(true);
     try {
-      // 1. 스타일 재생성 (변주)
-      if (onRegenerateStyle) {
-        await onRegenerateStyle();
-      }
-      // 2. 가사 생성
       const nextNum = trackNumber + 1;
-      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${nextNum}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사\n- Style of Music도 살짝 변주된 상태이므로 새 스타일에 맞는 가사를 작성`;
-      const res = await fetch("/api/lyrics", {
+      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 이전 트랙과 같은 톤/무드/장르 유지, 완전히 새로운 가사. 같은 앨범의 다른 곡처럼. 시점/장면/소품을 바꾸고 Hook도 새로 만들어라.`;
+      const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt, apiKey, provider }),
       });
-      const data = await res.json();
-      if (data.lyrics) {
-        const newTrack = { id: nextNum, lyrics: data.lyrics };
+
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.error || "생성 실패");
+        setGenerating(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) { setError("스트림 없음"); setGenerating(false); return; }
+
+      const decoder = new TextDecoder();
+      let fullText = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const d = line.slice(6).trim();
+          if (d === "[DONE]") break;
+          try { const p = JSON.parse(d); if (p.text) { fullText += p.text; setStreamingLyrics(fullText); } } catch {}
+        }
+      }
+
+      if (fullText) {
+        const newTrack = { id: nextNum, lyrics: fullText };
         setTracks((prev) => [...prev, newTrack]);
-        setActiveTrack(tracks.length); // 새 트랙으로 이동
-        setGeneratedLyrics(data.lyrics);
-        onLyricsUpdate?.(data.lyrics);
-      } else {
-        setError(data.error || "생성 실패");
+        setActiveTrack(tracks.length);
+        setGeneratedLyrics(fullText);
+        setStreamingLyrics("");
+        onLyricsUpdate?.(fullText);
       }
     } catch {
       setError("API 호출 실패");
@@ -885,22 +910,37 @@ export default function LyricsSection({
             </button>
             <button
               onClick={async () => {
-                setGenerating(true); setError("");
+                setGenerating(true); setError(""); setStreamingLyrics("");
                 try {
                   const nextNum = trackNumber + 1;
-                  const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 이전 트랙과 같은 톤/무드 유지, 새 가사. Style은 동일하게 유지.`;
-                  const res = await fetch("/api/lyrics", {
+                  const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\nTrack ${nextNum}. 같은 톤/무드, 새 가사. Style 동일 유지.`;
+                  const res = await fetch("/api/lyrics-stream", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt, apiKey, provider }),
                   });
-                  const data = await res.json();
-                  if (data.lyrics) {
-                    const newTrack = { id: nextNum, lyrics: data.lyrics };
+                  if (!res.ok) { const e = await res.json(); setError(e.error || "실패"); setGenerating(false); return; }
+                  const reader = res.body?.getReader();
+                  if (!reader) { setError("스트림 없음"); setGenerating(false); return; }
+                  const decoder = new TextDecoder();
+                  let fullText = "";
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+                      if (!line.startsWith("data: ")) continue;
+                      const d = line.slice(6).trim();
+                      if (d === "[DONE]") break;
+                      try { const p = JSON.parse(d); if (p.text) { fullText += p.text; setStreamingLyrics(fullText); } } catch {}
+                    }
+                  }
+                  if (fullText) {
+                    const newTrack = { id: nextNum, lyrics: fullText };
                     setTracks((prev) => [...prev, newTrack]);
                     setActiveTrack(tracks.length);
-                    setGeneratedLyrics(data.lyrics);
-                    onLyricsUpdate?.(data.lyrics);
-                  } else { setError(data.error || "생성 실패"); }
+                    setGeneratedLyrics(fullText);
+                    setStreamingLyrics("");
+                    onLyricsUpdate?.(fullText);
+                  }
                 } catch { setError("API 호출 실패"); }
                 setGenerating(false);
               }}
