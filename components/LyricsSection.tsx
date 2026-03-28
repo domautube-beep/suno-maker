@@ -17,6 +17,24 @@ interface LyricsSectionProps {
   trackNumber?: number;
 }
 
+// === 송폼 블록 ===
+const SONG_BLOCKS = [
+  { id: "verse", label: "Verse", color: "#3b82f6" },
+  { id: "pre", label: "Pre-Chorus", color: "#8b5cf6" },
+  { id: "hook", label: "Hook", color: "#f97316" },
+  { id: "chorus", label: "Chorus", color: "#ef4444" },
+  { id: "bridge", label: "Bridge", color: "#10b981" },
+  { id: "outro", label: "Outro", color: "#6b7280" },
+];
+
+const SONG_FORM_PRESETS = [
+  { label: "기본", blocks: ["verse", "hook", "chorus", "verse", "bridge", "hook", "chorus", "outro"] },
+  { label: "짧게", blocks: ["verse", "chorus", "verse", "chorus", "outro"] },
+  { label: "랩", blocks: ["verse", "verse", "hook", "chorus", "bridge", "chorus"] },
+  { label: "발라드", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "chorus"] },
+  { label: "팝", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus"] },
+];
+
 // === 가사 밀도 ===
 const DENSITY_OPTIONS = [
   { label: "짧게", value: "short", desc: "Verse 2줄, Chorus 2줄" },
@@ -133,6 +151,9 @@ function SubLabel({ label }: { label: string }) {
 export default function LyricsSection({
   style, language, currentSettings, apiKey, provider, onLyricsUpdate,
 }: LyricsSectionProps) {
+  // 송폼
+  const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
+
   // 가사 설정
   const [density, setDensity] = useState("");
   const [emotionArc, setEmotionArc] = useState(-1);
@@ -156,7 +177,7 @@ export default function LyricsSection({
   const [copied, setCopied] = useState(false);
 
   // 선택 완료 여부
-  const isReady = density && emotionArc >= 0 && vpVoice >= 0 && vpTimbre >= 0 && vpDelivery >= 0 && vpReverb >= 0 && vpEvolution >= 0;
+  const isReady = songFormBlocks.length >= 3 && density && emotionArc >= 0 && vpVoice >= 0 && vpTimbre >= 0 && vpDelivery >= 0 && vpReverb >= 0 && vpEvolution >= 0;
 
   // Vocal Profile 프롬프트 조합
   const buildVocalProfile = () => {
@@ -213,8 +234,12 @@ export default function LyricsSection({
 
     parts.push(`=== Style of Music ===`, style, ``);
     parts.push(`=== VOCAL PROFILE (가사 최상단에 그대로 포함) ===`, buildVocalProfile(), ``);
+    // 송폼 → 라벨로 변환
+    const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
+
     parts.push(`=== 가사 구조 ===`);
     parts.push(`가사 언어: ${langLabel}`);
+    parts.push(`송폼 구조: ${songFormLabels.join(" → ")}`);
     parts.push(`가사 밀도: ${selectedDensity.desc}`);
     parts.push(`감정 흐름: ${selectedArc.value}`);
     parts.push(``);
@@ -305,7 +330,73 @@ export default function LyricsSection({
         </div>
       </div>
 
-      {/* 2. DENSITY */}
+      {/* 2. SONG FORM */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <SectionLabel label="Song Form" sub="프리셋 선택 후 자유롭게 수정 가능" />
+
+        {/* 프리셋 */}
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {SONG_FORM_PRESETS.map((preset) => (
+            <Pill key={preset.label} label={preset.label}
+              selected={JSON.stringify(songFormBlocks) === JSON.stringify(preset.blocks)}
+              onClick={() => setSongFormBlocks([...preset.blocks])} />
+          ))}
+        </div>
+
+        {/* 현재 구조 — 블록 나열 + 삭제 */}
+        {songFormBlocks.length > 0 && (
+          <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "12px", padding: "12px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
+            {songFormBlocks.map((blockId, idx) => {
+              const block = SONG_BLOCKS.find((b) => b.id === blockId);
+              if (!block) return null;
+              return (
+                <div key={idx} style={{
+                  display: "flex", alignItems: "center", gap: "4px",
+                  padding: "4px 10px", borderRadius: "8px",
+                  backgroundColor: block.color + "18", border: `1px solid ${block.color}40`,
+                  fontSize: "11px", fontWeight: 600, color: block.color,
+                }}>
+                  <span>{block.label}</span>
+                  <button onClick={() => {
+                    const next = [...songFormBlocks];
+                    next.splice(idx, 1);
+                    setSongFormBlocks(next);
+                  }} style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: block.color, fontSize: "14px", lineHeight: 1, padding: "0 2px",
+                  }}>×</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 블록 추가 버튼 */}
+        <SubLabel label="섹션 추가" />
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          {SONG_BLOCKS.map((block) => (
+            <button key={block.id}
+              onClick={() => setSongFormBlocks((prev) => [...prev, block.id])}
+              style={{
+                padding: "5px 12px", borderRadius: "8px", fontSize: "10px", fontWeight: 600,
+                backgroundColor: "#fff", color: block.color,
+                border: `1px solid ${block.color}40`, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: "4px",
+              }}>
+              <span style={{ fontSize: "14px", lineHeight: 1 }}>+</span> {block.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 구조 미리보기 */}
+        {songFormBlocks.length > 0 && (
+          <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "8px", fontFamily: "monospace" }}>
+            {songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id).join(" → ")}
+          </p>
+        )}
+      </div>
+
+      {/* 3. Density */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionLabel label="Density" />
         <div style={{ display: "flex", gap: "6px" }}>
