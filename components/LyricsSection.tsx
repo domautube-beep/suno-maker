@@ -227,6 +227,9 @@ export default function LyricsSection({
     setTechniques((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // 트랙 번호
+  const [trackNumber, setTrackNumber] = useState(1);
+
   // 생성 상태
   const [generating, setGenerating] = useState(false);
   const [generatedLyrics, setGeneratedLyrics] = useState("");
@@ -356,6 +359,32 @@ export default function LyricsSection({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: buildFullPrompt(), apiKey, provider }),
+      });
+      const data = await res.json();
+      if (data.lyrics) {
+        setGeneratedLyrics(data.lyrics);
+        onLyricsUpdate?.(data.lyrics);
+      } else {
+        setError(data.error || "생성 실패");
+      }
+    } catch {
+      setError("API 호출 실패");
+    }
+    setGenerating(false);
+  };
+
+  // 다음 트랙 생성 — 같은 설정, 새 가사
+  const handleGenerateNextTrack = async () => {
+    setTrackNumber((prev) => prev + 1);
+    setGenerating(true);
+    setError("");
+    setGeneratedLyrics("");
+    try {
+      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${trackNumber + 1}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사`;
+      const res = await fetch("/api/lyrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, apiKey, provider }),
       });
       const data = await res.json();
       if (data.lyrics) {
@@ -675,6 +704,52 @@ export default function LyricsSection({
           )
         )}
       </div>
+
+      {/* 앨범 트랙 추가 — 가사 생성 완료 시에만 표시 */}
+      {!generating && generatedLyrics && (
+        <div style={{
+          borderTop: "1px solid #e5e5e5",
+          background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%)",
+          padding: "24px 20px",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
+            <div style={{
+              width: "48px", height: "48px", borderRadius: "14px",
+              backgroundColor: "#f97316", display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0, fontSize: "20px",
+            }}>
+              {trackNumber === 1 ? "💿" : trackNumber === 2 ? "🎵" : "🎶"}
+            </div>
+            <div>
+              <p style={{ fontSize: "15px", fontWeight: 800, color: "#fff" }}>
+                Track {trackNumber + 1} 추가
+              </p>
+              <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>
+                같은 톤 & 무드, 다른 가사. 앨범처럼 이어지는 플레이리스트.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleGenerateNextTrack}
+            style={{
+              width: "100%", padding: "14px", borderRadius: "12px",
+              backgroundColor: "#f97316", color: "#fff",
+              fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            비슷한 느낌으로 다음 곡 생성하기
+          </button>
+          {trackNumber > 1 && (
+            <p style={{ fontSize: "10px", color: "#525252", textAlign: "center", marginTop: "8px" }}>
+              현재 {trackNumber}곡 생성됨
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -66,7 +66,9 @@ export async function POST(req: NextRequest) {
       });
       if (!res.ok) {
         const err = await res.json();
-        return NextResponse.json({ error: err.error?.message || "Gemini API 호출 실패" }, { status: res.status });
+        const msg3 = err.error?.message || "";
+        if (msg3.includes("quota") || msg3.includes("rate") || msg3.includes("exceeded")) return NextResponse.json({ error: "Gemini 무료 사용량 초과. 1분 후 다시 시도하거나, Claude/GPT 키를 사용해주세요." }, { status: res.status });
+        return NextResponse.json({ error: msg3 || "Gemini API 실패" }, { status: res.status });
       }
       const data = await res.json();
       lyrics = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
