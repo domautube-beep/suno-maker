@@ -361,8 +361,14 @@ export default function LyricsSection({
   const streamRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    if (streamRef.current && streamingLyrics) {
-      streamRef.current.scrollTop = streamRef.current.scrollHeight;
+    if (streamingLyrics) {
+      // pre 내부 스크롤
+      if (streamRef.current) streamRef.current.scrollTop = streamRef.current.scrollHeight;
+      // 부모 스크롤 컨테이너도 하단으로
+      const scrollParent = streamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+      if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
+      // fallback: window
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
   }, [streamingLyrics]);
 

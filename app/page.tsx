@@ -71,8 +71,11 @@ export default function Home() {
   const styleStreamRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    if (styleStreamRef.current && streamingText) {
-      styleStreamRef.current.scrollTop = styleStreamRef.current.scrollHeight;
+    if (streamingText) {
+      if (styleStreamRef.current) styleStreamRef.current.scrollTop = styleStreamRef.current.scrollHeight;
+      const scrollParent = styleStreamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+      if (scrollParent) scrollParent.scrollTop = scrollParent.scrollHeight;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
   }, [streamingText]);
 
