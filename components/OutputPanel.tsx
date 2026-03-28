@@ -2,7 +2,7 @@
 
 import { SunoOutput } from "@/lib/types";
 import OutputBlock from "./OutputBlock";
-import LyricsSection from "./LyricsSection";
+// LyricsSection은 page.tsx에서 직접 사용
 
 interface OutputPanelProps {
   output: SunoOutput;
@@ -60,13 +60,7 @@ export default function OutputPanel({
           onEdit={(newContent) => onOutputEdit?.("style", newContent)}
         />
 
-        {/* Lyrics — 가사 생성 영역 */}
-        <LyricsSection
-          lyricsContent={output.lyrics}
-          style={output.style}
-          language="ko"
-          onLyricsUpdate={(newLyrics) => onOutputEdit?.("lyrics", newLyrics)}
-        />
+        {/* Lyrics — 가사 생성 영역 (OutputPanel에서는 미사용) */}
 
         {/* 비슷한 곡 더 만들기 배너 */}
         {onGenerateVariation && (

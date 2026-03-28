@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { buildLyricsRules, DEFAULT_BANNED_WORDS } from "@/lib/lyricsRules";
+import { Provider } from "./ApiKeyGate";
 
 interface LyricsSectionProps {
   lyricsContent: string;
   style: string;
   language: string;
   currentSettings?: Record<string, string>;
+  apiKey: string;
+  provider: Provider;
   onLanguageChange?: (lang: string) => void;
   onLyricsUpdate?: (lyrics: string) => void;
   onGenerateVariation?: () => void;
@@ -99,9 +102,11 @@ export default function LyricsSection({
   style,
   language,
   currentSettings,
+  apiKey,
+  provider,
   onLanguageChange,
+  onLyricsUpdate,
 }: LyricsSectionProps) {
-  // 전부 미선택(-1)으로 시작
   const [songForm, setSongForm] = useState(-1);
   const [emotionArc, setEmotionArc] = useState(-1);
   const [density, setDensity] = useState("");
@@ -111,8 +116,11 @@ export default function LyricsSection({
   const [bannedWords, setBannedWords] = useState(DEFAULT_BANNED_WORDS);
   const [showBannedEdit, setShowBannedEdit] = useState(false);
   const [copied, setCopied] = useState(false);
+  // 가사 생성 상태
+  const [generating, setGenerating] = useState(false);
+  const [generatedLyrics, setGeneratedLyrics] = useState("");
+  const [error, setError] = useState("");
 
-  // 선택 완료 여부
   const isReady = language && songForm >= 0 && emotionArc >= 0 && density && voiceType >= 0 && timbre >= 0 && delivery >= 0;
 
   // 보컬 프로필 동적 생성
@@ -198,33 +206,34 @@ export default function LyricsSection({
     return parts.join("\n");
   };
 
-  // 프롬프트 복사
-  const handleCopyPrompt = async () => {
-    const prompt = buildFullPrompt();
+  // API로 가사 생성
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError("");
     try {
-      await navigator.clipboard.writeText(prompt);
+      const res = await fetch("/api/lyrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: buildFullPrompt(), apiKey, provider }),
+      });
+      const data = await res.json();
+      if (data.lyrics) {
+        setGeneratedLyrics(data.lyrics);
+        onLyricsUpdate?.(data.lyrics);
+      } else {
+        setError(data.error || "생성 실패");
+      }
     } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = prompt;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
+      setError("API 호출 실패. 네트워크를 확인해주세요.");
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 3000);
+    setGenerating(false);
   };
 
-  // 복사 + Claude.ai 열기
-  const handleCopyAndOpen = async () => {
-    await handleCopyPrompt();
-    try {
-      const halfW = Math.floor(screen.width / 2);
-      window.moveTo(0, 0);
-      window.resizeTo(halfW, screen.height);
-    } catch { /* 브라우저 제한 */ }
-    const halfW = Math.floor(screen.width / 2);
-    window.open("https://claude.ai/new", "claude-lyrics", `width=${halfW},height=${screen.height},left=${halfW},top=0`);
+  // 생성된 가사 복사
+  const handleCopyLyrics = async () => {
+    await navigator.clipboard.writeText(generatedLyrics);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // 섹션 헤더 컴포넌트
@@ -364,44 +373,82 @@ export default function LyricsSection({
         )}
       </div>
 
-      {/* 프롬프트 생성 버튼 */}
+      {/* 가사 생성 버튼 + 결과 */}
       <div style={{ padding: "20px" }}>
-        {copied ? (
-          <div style={{ textAlign: "center", padding: "12px 0" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", backgroundColor: "#f0fdf4", borderRadius: "12px", border: "1px solid #bbf7d0" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "#16a34a" }}>프롬프트 복사됨!</span>
+        {/* 로딩 */}
+        {generating && (
+          <div style={{ textAlign: "center", padding: "40px 0" }}>
+            <svg className="animate-spin" style={{ margin: "0 auto 16px" }} width="32" height="32" viewBox="0 0 24 24">
+              <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
+              <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>가사 생성 중...</p>
+            <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "4px" }}>AI가 설정에 맞는 가사를 작성하고 있습니다</p>
+          </div>
+        )}
+
+        {/* 에러 */}
+        {!generating && error && (
+          <div style={{ padding: "12px 16px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "12px", marginBottom: "12px" }}>
+            <p style={{ fontSize: "12px", color: "#dc2626" }}>{error}</p>
+          </div>
+        )}
+
+        {/* 생성된 가사 */}
+        {!generating && generatedLyrics && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", textTransform: "uppercase", letterSpacing: "0.05em" }}>생성된 가사</p>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button onClick={handleCopyLyrics} style={{
+                  padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
+                  backgroundColor: copied ? "#f0fdf4" : "#fff", color: copied ? "#16a34a" : "#a3a3a3",
+                  border: copied ? "1px solid #bbf7d0" : "1px solid #e5e5e5", cursor: "pointer",
+                }}>
+                  {copied ? "복사됨!" : "복사"}
+                </button>
+                <button onClick={handleGenerate} style={{
+                  padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
+                  backgroundColor: "#fff7ed", color: "#f97316",
+                  border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer",
+                }}>
+                  다시 생성
+                </button>
+              </div>
             </div>
-            <p style={{ fontSize: "11px", color: "#737373", marginTop: "8px" }}>
-              Claude.ai에 붙여넣기 → 생성된 가사를 Suno에 직접 붙여넣기
+            <pre style={{
+              fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap",
+              lineHeight: "1.7", fontFamily: "monospace",
+              maxHeight: "500px", overflowY: "auto",
+              padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px",
+              border: "1px solid #e5e5e5",
+            }}>
+              {generatedLyrics}
+            </pre>
+            <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "8px", textAlign: "center" }}>
+              이 가사를 Suno의 Lyrics 필드에 붙여넣으세요
             </p>
           </div>
-        ) : !isReady ? (
-          <div style={{ textAlign: "center", padding: "12px 0" }}>
-            <p style={{ fontSize: "12px", color: "#d4d4d4", fontWeight: 500 }}>모든 항목을 선택하면 프롬프트를 생성할 수 있습니다</p>
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            <button onClick={handleCopyAndOpen} style={{
-              padding: "14px", borderRadius: "12px", backgroundColor: "#f97316",
+        )}
+
+        {/* 생성 버튼 (결과 없고 로딩 아닐 때) */}
+        {!generating && !generatedLyrics && (
+          !isReady ? (
+            <div style={{ textAlign: "center", padding: "12px 0" }}>
+              <p style={{ fontSize: "12px", color: "#d4d4d4", fontWeight: 500 }}>모든 항목을 선택하면 가사를 생성할 수 있습니다</p>
+            </div>
+          ) : (
+            <button onClick={handleGenerate} style={{
+              width: "100%", padding: "14px", borderRadius: "12px", backgroundColor: "#f97316",
               color: "#fff", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
             }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
               </svg>
-              프롬프트 복사 + Claude.ai 열기
+              가사 생성하기
             </button>
-            <button onClick={handleCopyPrompt} style={{
-              padding: "10px", borderRadius: "12px", backgroundColor: "#fff",
-              color: "#737373", fontSize: "12px", fontWeight: 500,
-              border: "1px solid #e5e5e5", cursor: "pointer",
-            }}>
-              프롬프트만 복사
-            </button>
-          </div>
+          )
         )}
       </div>
     </div>

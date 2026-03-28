@@ -1,40 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 서버 사이드 환경변수로 Claude 호출 → 가사 생성
+// 3개 provider 대응 가사 생성 API
 export async function POST(req: NextRequest) {
-  const { prompt } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const { prompt, apiKey, provider } = await req.json();
 
-  if (!apiKey) {
-    return NextResponse.json({ error: "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다." }, { status: 500 });
-  }
-
-  if (!prompt) {
-    return NextResponse.json({ error: "프롬프트가 필요합니다." }, { status: 400 });
+  if (!apiKey || !prompt || !provider) {
+    return NextResponse.json({ error: "API 키, 프롬프트, provider가 필요합니다." }, { status: 400 });
   }
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4096,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+    let lyrics = "";
 
-    if (!res.ok) {
-      const err = await res.json();
-      return NextResponse.json({ error: err.error?.message || "API 호출 실패" }, { status: res.status });
+    if (provider === "claude") {
+      // Anthropic Claude API
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 4096,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return NextResponse.json({ error: err.error?.message || "Claude API 호출 실패" }, { status: res.status });
+      }
+      const data = await res.json();
+      lyrics = data.content?.[0]?.text || "";
+
+    } else if (provider === "openai") {
+      // OpenAI GPT API
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          max_tokens: 4096,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return NextResponse.json({ error: err.error?.message || "OpenAI API 호출 실패" }, { status: res.status });
+      }
+      const data = await res.json();
+      lyrics = data.choices?.[0]?.message?.content || "";
+
+    } else if (provider === "gemini") {
+      // Google Gemini API
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 4096 },
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return NextResponse.json({ error: err.error?.message || "Gemini API 호출 실패" }, { status: res.status });
+      }
+      const data = await res.json();
+      lyrics = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    } else {
+      return NextResponse.json({ error: `지원하지 않는 provider: ${provider}` }, { status: 400 });
     }
-
-    const data = await res.json();
-    const lyrics = data.content?.[0]?.text || "";
 
     return NextResponse.json({ lyrics });
   } catch {

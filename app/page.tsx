@@ -11,8 +11,13 @@ import LivePreview from "@/components/LivePreview";
 import OutputBlock from "@/components/OutputBlock";
 import LyricsSection from "@/components/LyricsSection";
 import ProgressBar from "@/components/ProgressBar";
+import ApiKeyGate, { Provider } from "@/components/ApiKeyGate";
 
 export default function Home() {
+  // API 키 (세션 메모리만, 저장 안 함)
+  const [apiKey, setApiKey] = useState("");
+  const [provider, setProvider] = useState<Provider>(null);
+
   // 2단계: chat → result (Style + Lyrics 한 화면)
   const [phase, setPhase] = useState<AppPhase>("chat");
   const [previewSections, setPreviewSections] = useState<PreviewSection[]>([]);
@@ -230,6 +235,11 @@ export default function Home() {
     setChatKey((prev) => prev + 1);
   }, []);
 
+  // API 키 미입력 시 게이트 표시
+  if (!apiKey || !provider) {
+    return <ApiKeyGate onKeySubmit={(key, prov) => { setApiKey(key); setProvider(prov); }} />;
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background relative">
       <Header phase={phase} onReset={handleReset} />
@@ -314,12 +324,14 @@ export default function Home() {
                   onEdit={(newContent) => setOutput((prev) => prev ? { ...prev, style: newContent } : prev)}
                 />
 
-                {/* Lyrics — 가사 출력 + 생성 도구 통합 */}
+                {/* Lyrics — 가사 설정 + 생성 */}
                 <LyricsSection
                   lyricsContent={output.lyrics}
                   style={output.style}
-                  language={currentInputs.language as string || "ko"}
+                  language={currentInputs.language as string || ""}
                   currentSettings={currentInputs as Record<string, string>}
+                  apiKey={apiKey}
+                  provider={provider}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
                   onLanguageChange={(lang) => setCurrentInputs((prev) => ({ ...prev, language: lang }))}
                   onGenerateVariation={handleGenerateVariation}
