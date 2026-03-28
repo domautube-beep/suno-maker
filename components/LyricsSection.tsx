@@ -17,7 +17,6 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
   const [lyrics, setLyrics] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [showApiInput, setShowApiInput] = useState(false);
-  const [showRules, setShowRules] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [mode, setMode] = useState<"select" | "claude" | "api">("select");
 
@@ -149,9 +148,10 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
               style={{
                 flex: 1, padding: "8px", borderRadius: "9999px", fontSize: "12px",
                 fontWeight: language === lang.value ? 600 : 400,
-                backgroundColor: language === lang.value ? "#0a0a0a" : "#fafafa",
-                color: language === lang.value ? "#fff" : "#525252",
-                border: "1px solid #e5e5e5", cursor: "pointer",
+                backgroundColor: language === lang.value ? "#0a0a0a" : "#fff",
+                color: language === lang.value ? "#fff" : "#a3a3a3",
+                border: language === lang.value ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer",
               }}
             >
               {lang.label}
@@ -186,7 +186,7 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
             <button
               onClick={handleOpenClaude}
               style={{
-                padding: "16px", borderRadius: "12px", backgroundColor: "#f97316",
+                padding: "16px", borderRadius: "12px", backgroundColor: "#0a0a0a",
                 color: "#fff", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               }}
@@ -213,8 +213,8 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
               onClick={() => apiKey ? handleGenerateWithApi() : setShowApiInput(true)}
               style={{
                 padding: "14px", borderRadius: "12px",
-                backgroundColor: "#0a0a0a", color: "#fff",
-                fontSize: "13px", fontWeight: 600, border: "none", cursor: "pointer",
+                backgroundColor: "#fff", color: "#737373",
+                fontSize: "13px", fontWeight: 600, border: "1px solid #e5e5e5", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
               }}
               className="hover:opacity-80 transition-all"
@@ -324,13 +324,13 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
           style={{
             borderTop: "1px solid #e5e5e5",
             padding: "20px",
-            background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)",
+            background: "#fafafa",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
             <div style={{
               width: "40px", height: "40px", borderRadius: "12px",
-              backgroundColor: "#f97316", display: "flex", alignItems: "center", justifyContent: "center",
+              backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -352,14 +352,14 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
               width: "100%",
               padding: "12px",
               borderRadius: "12px",
-              backgroundColor: "#f97316",
+              backgroundColor: "#0a0a0a",
               color: "#fff",
               fontSize: "13px",
               fontWeight: 700,
               border: "none",
               cursor: "pointer",
             }}
-            className="hover:opacity-90 transition-all"
+            className="hover:opacity-80 transition-all"
           >
             비슷한 느낌으로 다음 곡 생성하기 →
           </button>
