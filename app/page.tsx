@@ -289,6 +289,7 @@ export default function Home() {
                   provider={provider}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
                   onLanguageChange={(lang) => setCurrentInputs((prev) => ({ ...prev, language: lang }))}
+                  onRegenerateStyle={() => generateStyle(currentInputs as Record<string, string>)}
                   onGenerateVariation={handleGenerateVariation}
                   trackNumber={trackNumber}
                 />

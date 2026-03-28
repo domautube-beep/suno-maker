@@ -13,6 +13,7 @@ interface LyricsSectionProps {
   provider: Provider;
   onLanguageChange?: (lang: string) => void;
   onLyricsUpdate?: (lyrics: string) => void;
+  onRegenerateStyle?: () => Promise<void>;
   onGenerateVariation?: () => void;
   trackNumber?: number;
 }
@@ -192,7 +193,7 @@ function SubLabel({ label }: { label: string }) {
 
 // === 메인 컴포넌트 ===
 export default function LyricsSection({
-  style, language, currentSettings, apiKey, provider, onLyricsUpdate,
+  style, language, currentSettings, apiKey, provider, onLyricsUpdate, onRegenerateStyle,
 }: LyricsSectionProps) {
   // 핵심 문장 — Chat Flow에서 가져오되 수정 가능
   const [coreMessage, setCoreMessage] = useState(currentSettings?.oneLiner || "");
@@ -378,13 +379,18 @@ export default function LyricsSection({
     setGenerating(false);
   };
 
-  // 다음 트랙 생성 — 같은 설정, 새 가사
+  // 다음 트랙 생성 — 스타일 변주 + 새 가사
   const handleGenerateNextTrack = async () => {
     setGenerating(true);
     setError("");
     try {
+      // 1. 스타일 재생성 (변주)
+      if (onRegenerateStyle) {
+        await onRegenerateStyle();
+      }
+      // 2. 가사 생성
       const nextNum = trackNumber + 1;
-      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${nextNum}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사`;
+      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${nextNum}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사\n- Style of Music도 살짝 변주된 상태이므로 새 스타일에 맞는 가사를 작성`;
       const res = await fetch("/api/lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
