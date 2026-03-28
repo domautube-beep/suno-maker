@@ -29,12 +29,13 @@ const SONG_BLOCKS = [
 
 const SONG_FORM_PRESETS = [
   { label: "Pop/K-Pop", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"] },
-  { label: "Hip-Hop", blocks: ["verse", "hook", "verse", "hook", "bridge", "hook"] },
-  { label: "R&B", blocks: ["verse", "hook", "chorus", "verse", "bridge", "hook", "chorus", "outro"] },
+  { label: "Hip-Hop", blocks: ["verse", "hook", "verse", "hook", "bridge", "hook", "outro"] },
+  { label: "R&B", blocks: ["verse", "hook", "chorus", "verse", "hook", "chorus", "bridge", "chorus", "outro"] },
   { label: "Ballad", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"] },
-  { label: "EDM", blocks: ["verse", "pre", "chorus", "verse", "chorus", "chorus", "outro"] },
-  { label: "Rock", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus"] },
-  { label: "Lo-Fi", blocks: ["verse", "chorus", "verse", "chorus", "outro"] },
+  { label: "EDM", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"] },
+  { label: "Rock", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"] },
+  { label: "Lo-Fi", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "outro"] },
+  { label: "Trot", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"] },
 ];
 
 // === 가사 밀도 ===
@@ -153,8 +154,10 @@ function SubLabel({ label }: { label: string }) {
 export default function LyricsSection({
   style, language, currentSettings, apiKey, provider, onLyricsUpdate,
 }: LyricsSectionProps) {
-  // 송폼
+  // 송폼 + 드래그
   const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   // 가사 설정
   const [density, setDensity] = useState("");
@@ -345,19 +348,39 @@ export default function LyricsSection({
           ))}
         </div>
 
-        {/* 현재 구조 — 블록 나열 + 삭제 */}
+        {/* 현재 구조 — 드래그앤드랍 + 삭제 */}
         {songFormBlocks.length > 0 && (
           <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "12px", padding: "12px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
             {songFormBlocks.map((blockId, idx) => {
               const block = SONG_BLOCKS.find((b) => b.id === blockId);
               if (!block) return null;
+              const isDragging = dragIdx === idx;
+              const isDragOver = dragOverIdx === idx;
               return (
-                <div key={idx} style={{
-                  display: "flex", alignItems: "center", gap: "4px",
-                  padding: "4px 10px", borderRadius: "8px",
-                  backgroundColor: block.color + "18", border: `1px solid ${block.color}40`,
-                  fontSize: "11px", fontWeight: 600, color: block.color,
-                }}>
+                <div key={idx}
+                  draggable
+                  onDragStart={() => setDragIdx(idx)}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverIdx(idx); }}
+                  onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+                  onDrop={() => {
+                    if (dragIdx === null || dragIdx === idx) return;
+                    const next = [...songFormBlocks];
+                    const [moved] = next.splice(dragIdx, 1);
+                    next.splice(idx, 0, moved);
+                    setSongFormBlocks(next);
+                    setDragIdx(null);
+                    setDragOverIdx(null);
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "4px",
+                    padding: "4px 10px", borderRadius: "8px",
+                    backgroundColor: block.color + "18",
+                    border: isDragOver ? `2px solid ${block.color}` : `1px solid ${block.color}40`,
+                    fontSize: "11px", fontWeight: 600, color: block.color,
+                    cursor: "grab", opacity: isDragging ? 0.4 : 1,
+                    transition: "opacity 0.15s, border 0.15s",
+                  }}>
+                  <span style={{ cursor: "grab", marginRight: "2px", fontSize: "10px", color: "#a3a3a3" }}>⠿</span>
                   <span>{block.label}</span>
                   <button onClick={() => {
                     const next = [...songFormBlocks];
