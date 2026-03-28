@@ -461,13 +461,13 @@ export default function LyricsSection({
    - 리듬 패턴을 완전히 다르게 (예: 직진→스윙, 4/4→셔플)
    - 핵심 악기 1~2개 교체 (예: 피아노→기타, 808→라이브드럼)
    - 곡 구조의 에너지 분배를 반전 (1번이 잔잔→폭발이었으면 이번은 폭발→잔잔)
-3. 가사는 같은 세계관이지만:
-   - 화자/시점을 바꿔라 (1인칭→2인칭, 또는 다른 인물 시점)
-   - 시간대를 바꿔라 (낮→밤, 과거→현재, 계절 변경)
-   - 장면/공간을 완전히 바꿔라 (실내→야외, 도시→자연)
-   - Hook은 반드시 새로운 구절 — 이전 곡 Hook과 한 단어도 겹치면 안 됨
-   - 소품/이미지를 전부 교체
-4. 이전 곡을 들은 적 없는 것처럼 처음부터 새로 써라`;
+3. 가사 변주 원칙:
+   - 같은 화자의 감성을 완전히 다른 모티프로 표현
+   - 새로운 환경, 새로운 감정, 새로운 시선으로 바라보는 가사
+   - 이전 곡이 "비 오는 밤의 그리움"이었다면 이번은 "빈 커피잔의 기다림"처럼 — 감성의 결은 같되 표현의 세계가 다름
+   - Hook은 반드시 새로운 구절 — 이전 곡과 한 단어도 겹치면 안 됨
+   - 소품/이미지/배경을 전부 교체
+4. 마치 같은 사람이 다른 날, 다른 장소에서 다른 마음으로 쓴 곡처럼`;
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -954,11 +954,11 @@ export default function LyricsSection({
                 try {
                   const nextNum = trackNumber + 1;
                   const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===
-같은 앨범 ${nextNum}번째 곡. Style은 유지하되 가사는 완전히 다르게:
-- 화자/시점 변경, 시간대 변경, 장면/공간 교체
+같은 앨범 ${nextNum}번째 곡. Style 유지, 가사는 완전히 다르게:
+- 같은 화자의 감성을 다른 모티프, 다른 환경, 다른 감정으로 표현
+- 새로운 마음으로 바라보는 스타일로 다시 쓴 가사
 - Hook 완전 새로 — 이전 곡과 한 단어도 겹치지 마
-- 소품/이미지 전부 교체
-- 이전 곡을 들은 적 없는 것처럼 써라`;
+- 같은 사람이 다른 날, 다른 장소에서 다른 마음으로 쓴 곡처럼`;
                   const res = await fetch("/api/lyrics-stream", {
                     method: "POST", headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt, apiKey, provider }),
