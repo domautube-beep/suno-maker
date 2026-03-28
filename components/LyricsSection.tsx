@@ -166,10 +166,10 @@ function Pill({ label, selected, onClick }: { label: string; selected: boolean; 
   return (
     <button onClick={onClick} style={{
       padding: "6px 14px", borderRadius: "9999px", fontSize: "11px",
-      fontWeight: selected ? 600 : 400,
+      fontWeight: selected ? 600 : 500,
       backgroundColor: selected ? "#0a0a0a" : "#fff",
-      color: selected ? "#fff" : "#d4d4d4",
-      border: selected ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+      color: selected ? "#fff" : "#737373",
+      border: selected ? "1px solid #0a0a0a" : "1px solid #d4d4d4",
       cursor: "pointer", transition: "all 0.15s ease",
     }}>
       {label}
@@ -268,7 +268,6 @@ export default function LyricsSection({
     const genreGuide = GENRE_GUIDES[genre] || "";
 
     const settingsLines: string[] = [];
-    if (coreMessage.trim()) settingsLines.push(`핵심 문장: "${coreMessage.trim()}"`);
     if (currentSettings?.genre) settingsLines.push(`장르: ${currentSettings.genre}`);
     if (currentSettings?.vibe) settingsLines.push(`느낌: ${currentSettings.vibe}`);
     if (currentSettings?.era) settingsLines.push(`시대감: ${currentSettings.era}`);
@@ -279,11 +278,28 @@ export default function LyricsSection({
 
     const parts = [
       `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
-      ``,
-      `=== 가사 작성 규칙 ===`,
-      buildLyricsRules(bannedWords),
-      ``,
     ];
+
+    // 핵심 문장 브레인스토밍 지침
+    if (coreMessage.trim()) {
+      parts.push(``);
+      parts.push(`=== 핵심 문장 브레인스토밍 (가장 중요) ===`);
+      parts.push(`"${coreMessage.trim()}"`);
+      parts.push(``);
+      parts.push(`이 핵심 문장을 아래 7가지 관점으로 해석하고, 가사 전체에 반영해라:`);
+      parts.push(`1. 씨드 이미지 — 이 문장에서 가장 강렬한 시각적 이미지 1개를 뽑아 곡 전체의 모티프로 사용`);
+      parts.push(`2. 감정 방향 — 이 문장이 품고 있는 감정의 정체와 온도를 파악해 Verse→Chorus→Bridge 감정 곡선에 반영`);
+      parts.push(`3. 장면 고정 — 이 문장이 발화되는 물리적 공간/상황 1개를 설정하고 곡 전체의 배경으로 고정`);
+      parts.push(`4. Hook 후보 — 이 문장을 4~10음절로 압축해 Hook Core Line 후보를 만들어라. 원문 그대로 써도 되고, 핵심만 뽑아도 됨`);
+      parts.push(`5. 대립 축 — 이 문장에 숨은 대립(과거/현재, 나/너, 말/침묵, 움직임/정지 등)을 찾아 대구법의 축으로 활용`);
+      parts.push(`6. 서사 기점 — 이 문장이 곡의 어느 지점인지 판단해라: 시작(설정)인지, 중간(갈등)인지, 끝(결말)인지. 그에 맞게 서사를 앞뒤로 확장`);
+      parts.push(`7. 금지어 연상 차단 — 이 문장에서 연상되는 클리셰(금지 표현 목록 참조)를 의식적으로 피하고, 예상 밖의 이미지로 전개`);
+    }
+
+    parts.push(``);
+    parts.push(`=== 가사 작성 규칙 ===`);
+    parts.push(buildLyricsRules(bannedWords));
+    parts.push(``);
 
     if (settingsLines.length > 0) {
       parts.push(`=== 곡 설정 ===`, settingsLines.join("\n"), ``);
