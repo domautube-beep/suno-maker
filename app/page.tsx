@@ -13,9 +13,15 @@ import ProgressBar from "@/components/ProgressBar";
 import ApiKeyGate, { Provider } from "@/components/ApiKeyGate";
 
 export default function Home() {
-  // API 키 (세션 메모리만, 저장 안 함)
-  const [apiKey, setApiKey] = useState("");
-  const [provider, setProvider] = useState<Provider>(null);
+  // API 키 — sessionStorage (새로고침 유지, 탭 닫으면 사라짐)
+  const [apiKey, setApiKey] = useState(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("r3_apikey") || "";
+    return "";
+  });
+  const [provider, setProvider] = useState<Provider>(() => {
+    if (typeof window !== "undefined") return (sessionStorage.getItem("r3_provider") as Provider) || null;
+    return null;
+  });
 
   // 2단계: chat → result (Style + Lyrics 한 화면)
   const [phase, setPhase] = useState<AppPhase>("chat");
@@ -213,7 +219,12 @@ export default function Home() {
 
   // API 키 미입력 시 게이트 표시
   if (!apiKey || !provider) {
-    return <ApiKeyGate onKeySubmit={(key, prov) => { setApiKey(key); setProvider(prov); }} />;
+    return <ApiKeyGate onKeySubmit={(key, prov) => {
+      setApiKey(key);
+      setProvider(prov);
+      sessionStorage.setItem("r3_apikey", key);
+      sessionStorage.setItem("r3_provider", prov || "");
+    }} />;
   }
 
   return (

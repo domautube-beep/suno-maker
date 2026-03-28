@@ -104,37 +104,27 @@ export default function LyricsSection({
   currentSettings,
   apiKey,
   provider,
-  onLanguageChange,
   onLyricsUpdate,
 }: LyricsSectionProps) {
-  const [songForm, setSongForm] = useState(-1);
+  // Lyrics 전용 설정만 (Language, Vocal, Song Form은 Chat Flow에서 이미 수집)
   const [emotionArc, setEmotionArc] = useState(-1);
   const [density, setDensity] = useState("");
-  const [voiceType, setVoiceType] = useState(-1);
-  const [timbre, setTimbre] = useState(-1);
-  const [delivery, setDelivery] = useState(-1);
   const [bannedWords, setBannedWords] = useState(DEFAULT_BANNED_WORDS);
   const [showBannedEdit, setShowBannedEdit] = useState(false);
   const [copied, setCopied] = useState(false);
-  // 가사 생성 상태
   const [generating, setGenerating] = useState(false);
   const [generatedLyrics, setGeneratedLyrics] = useState("");
   const [error, setError] = useState("");
 
-  const isReady = language && songForm >= 0 && emotionArc >= 0 && density && voiceType >= 0 && timbre >= 0 && delivery >= 0;
+  const isReady = emotionArc >= 0 && density;
 
-  // 보컬 프로필 동적 생성
+  // 보컬 프로필 — Chat Flow에서 수집한 vocal 설정 사용
   const buildVocalProfile = () => {
-    if (voiceType < 0 || timbre < 0 || delivery < 0) return "";
-    return [
-      `[VOCAL_PROFILE: ${VOICE_TYPES[voiceType].value.split(",")[0]}, ${TIMBRES[timbre].value.split(",")[0]}, ${DELIVERIES[delivery].value.split(",")[0]}]`,
-      `[VOICE_TYPE: ${VOICE_TYPES[voiceType].value}]`,
-      `[TIMBRE: ${TIMBRES[timbre].value}]`,
-      `[ARTICULATION: relaxed consonants, flowing legato, occasional breathy onset]`,
-      `[VIBRATO: minimal, slow controlled, phrase-end only]`,
-      `[DELIVERY: ${DELIVERIES[delivery].value}]`,
-      `[PERFORMANCE_TRAITS: audible breath before key phrases, natural crescendo into hook]`,
-    ].join("\n");
+    const vocal = currentSettings?.vocal || "";
+    if (!vocal) return "보컬 설정 없음 — 자유롭게 결정해줘";
+    // vocal은 "|" 구분자로 타입/음색/딜리버리/공간감 연결
+    const parts = vocal.split("|").map((p) => p.trim()).filter(Boolean);
+    return parts.join("\n");
   };
 
   // 장르 가이드 — 현재 장르에 맞는 것만
@@ -145,13 +135,12 @@ export default function LyricsSection({
 
   // 프롬프트 조합
   const buildFullPrompt = () => {
-    const selectedForm = SONG_FORMS[songForm];
     const selectedArc = EMOTION_ARCS[emotionArc];
     const selectedDensity = DENSITY_OPTIONS.find((d) => d.value === density)!;
     const langLabel = language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어 + English 믹스";
     const genreGuide = getGenreGuide();
 
-    // 설정 요약
+    // 설정 요약 — Chat Flow에서 수집한 값 전부 포함
     const settingsLines: string[] = [];
     if (currentSettings?.oneLiner) settingsLines.push(`핵심 문장: "${currentSettings.oneLiner}"`);
     if (currentSettings?.genre) settingsLines.push(`장르: ${currentSettings.genre}`);
@@ -160,6 +149,7 @@ export default function LyricsSection({
     if (currentSettings?.texture) settingsLines.push(`질감: ${currentSettings.texture}`);
     if (currentSettings?.tempo) settingsLines.push(`템포: ${currentSettings.tempo}`);
     if (currentSettings?.instruments) settingsLines.push(`악기: ${currentSettings.instruments}`);
+    if (currentSettings?.reverb) settingsLines.push(`리버브: ${currentSettings.reverb}`);
 
     const parts = [
       `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
@@ -179,13 +169,12 @@ export default function LyricsSection({
     parts.push(style);
     parts.push(``);
 
-    parts.push(`=== VOCAL PROFILE (가사 최상단에 그대로 포함할 것) ===`);
+    parts.push(`=== 보컬 설정 (Chat Flow에서 선택됨) ===`);
     parts.push(buildVocalProfile());
     parts.push(``);
 
     parts.push(`=== 가사 구조 설정 ===`);
     parts.push(`가사 언어: ${langLabel}`);
-    parts.push(`송폼 구조: ${selectedForm.value}`);
     parts.push(`가사 밀도: ${selectedDensity.desc}`);
     parts.push(`감정 흐름: ${selectedArc.value}`);
     parts.push(``);
@@ -251,24 +240,7 @@ export default function LyricsSection({
         </p>
       </div>
 
-      {/* 1. Language */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionHeader label="Language" />
-        <div style={{ display: "flex", gap: "6px" }}>
-          {[
-            { label: "한국어", value: "ko" },
-            { label: "English", value: "en" },
-            { label: "日本語", value: "ja" },
-            { label: "KO + EN", value: "mixed" },
-          ].map((lang) => (
-            <PillButton key={lang.value} label={lang.label}
-              selected={language === lang.value}
-              onClick={() => onLanguageChange?.(lang.value)} />
-          ))}
-        </div>
-      </div>
-
-      {/* 2. Density */}
+      {/* 1. Density */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionHeader label="Density" />
         <div style={{ display: "flex", gap: "6px" }}>
@@ -281,46 +253,7 @@ export default function LyricsSection({
         {density && <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px" }}>{DENSITY_OPTIONS.find((d) => d.value === density)?.desc}</p>}
       </div>
 
-      {/* 3. Song Form */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionHeader label="Song Form" />
-        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {SONG_FORMS.map((form, i) => (
-            <PillButton key={form.label} label={form.label}
-              selected={songForm === i}
-              onClick={() => setSongForm(i)} />
-          ))}
-        </div>
-        {songForm >= 0 && <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px", fontFamily: "monospace" }}>{SONG_FORMS[songForm].desc}</p>}
-      </div>
-
-      {/* 4. Vocal Style */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionHeader label="Vocal Style" />
-
-        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>음역</p>
-        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VOICE_TYPES.map((v, i) => (
-            <PillButton key={v.label} label={v.label} selected={voiceType === i} onClick={() => setVoiceType(i)} />
-          ))}
-        </div>
-
-        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>음색</p>
-        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {TIMBRES.map((t, i) => (
-            <PillButton key={t.label} label={t.label} selected={timbre === i} onClick={() => setTimbre(i)} />
-          ))}
-        </div>
-
-        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>딜리버리</p>
-        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-          {DELIVERIES.map((d, i) => (
-            <PillButton key={d.label} label={d.label} selected={delivery === i} onClick={() => setDelivery(i)} />
-          ))}
-        </div>
-      </div>
-
-      {/* 5. Emotion Arc */}
+      {/* 2. Emotion Arc */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionHeader label="Emotion Arc" />
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
