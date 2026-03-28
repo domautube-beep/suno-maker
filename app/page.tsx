@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AppPhase, SunoInput, SunoOutput, PreviewSection } from "@/lib/types";
 import { generatePreview } from "@/lib/previewEngine";
-import { generateDemo } from "@/lib/demoGenerator";
 import { smartFill } from "@/lib/smartFill";
 import Header from "@/components/Header";
 import ChatFlow from "@/components/ChatFlow";
@@ -49,43 +48,15 @@ export default function Home() {
     flashToastRef.current = flashToast;
   }, [flashToast]);
 
-  // currentInputs 변경 → result phase일 때 output + 프리뷰 재생성
+  // currentInputs 변경 → 프리뷰만 업데이트 (스타일 재생성은 명시적 버튼으로)
   useEffect(() => {
     if (phase !== "result") return;
-    const inputs = currentInputs as SunoInput;
-    if (!inputs.oneLiner && !inputs.genre) return;
-
-    const prev = prevInputsRef.current as SunoInput;
-    // 언어만 변경된 경우: 가사만 재생성, 스타일은 유지
-    const onlyLanguageChanged = prev.oneLiner === inputs.oneLiner
-      && prev.genre === inputs.genre && prev.vibe === inputs.vibe
-      && prev.tempo === inputs.tempo && prev.era === inputs.era
-      && prev.texture === inputs.texture && prev.reverb === inputs.reverb
-      && prev.vocal === inputs.vocal && prev.instruments === inputs.instruments
-      && prev.timeSignature === inputs.timeSignature
-      && prev.language !== inputs.language;
-
-    if (onlyLanguageChanged && output) {
-      // 스타일 유지, 가사만 재생성
-      const { output: newOutput, forensicLog: newLog } = generateDemo(inputs);
-      setOutput({ style: output.style, lyrics: newOutput.lyrics });
-      setForensicLog(newLog);
-    } else {
-      // 전체 재생성 (스타일 + 가사)
-      const { output: newOutput, forensicLog: newLog } = generateDemo(inputs);
-      setOutput(newOutput);
-      setForensicLog(newLog);
-    }
-
-    prevInputsRef.current = { ...currentInputs };
 
     const newSections = generatePreview(currentInputs);
     setPreviewSections(identityOverride
       ? newSections.map((s) => s.id === "identity" ? { ...s, english: identityOverride } : s)
       : newSections
     );
-
-    flashToastRef.current();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentInputs, phase]);
 
@@ -180,47 +151,52 @@ export default function Home() {
     }
   }, []);
 
-  // 대화 완료 → result phase
+  // AI로 Style of Music 생성
+  const generateStyle = useCallback(async (inputs: Record<string, string>) => {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs, apiKey, provider }),
+      });
+      const data = await res.json();
+      if (data.style) {
+        setOutput({ style: data.style, lyrics: "" });
+        setForensicLog(data.forensicLog || "");
+      } else if (data.error) {
+        setForensicLog(`[에러] ${data.error}`);
+        setOutput({ style: "", lyrics: "" });
+      }
+    } catch {
+      setForensicLog("[에러] API 호출 실패");
+      setOutput({ style: "", lyrics: "" });
+    }
+    setGenerating(false);
+  }, [apiKey, provider]);
+
+  // 대화 완료 → result phase + AI 스타일 생성
   const handleComplete = useCallback((inputs: SunoInput) => {
     const filled = smartFill(inputs);
     setCurrentInputs(filled);
-
-    const { output: demoOutput, forensicLog: log } = generateDemo(filled);
-    setOutput(demoOutput);
-    setForensicLog(log);
 
     const sections = generatePreview(filled);
     setPreviewSections(sections);
 
     setPhase("result");
-  }, []);
+    generateStyle(filled as unknown as Record<string, string>);
+  }, [generateStyle]);
 
-  // 가사만 재생성 (스타일 유지)
-  const handleRegenerateLyrics = useCallback(() => {
-    const inputs = currentInputs as SunoInput;
-    if (!inputs.oneLiner && !inputs.genre) return;
+  // 스타일 재생성 (프리뷰에서 수정 후)
+  const handleRegenerateStyle = useCallback(() => {
+    generateStyle(currentInputs as Record<string, string>);
+  }, [currentInputs, generateStyle]);
 
-    const { output: newOutput } = generateDemo(inputs);
-    setOutput((prev) => prev ? { ...prev, lyrics: newOutput.lyrics } : newOutput);
-    flashToastRef.current();
-  }, [currentInputs]);
-
-  // 변주 생성 (스타일 + 가사 모두 새로 생성)
+  // 변주 생성 (스타일 새로 생성)
   const handleGenerateVariation = useCallback(() => {
-    const inputs = currentInputs as SunoInput;
-    if (!inputs.oneLiner && !inputs.genre) return;
-
     setTrackNumber((prev) => prev + 1);
-
-    const { output: newOutput, forensicLog: newLog } = generateDemo(inputs);
-    setOutput(newOutput);
-    setForensicLog(newLog + `\n\n[Track ${trackNumber + 1} — 변주 생성]`);
-
-    const sections = generatePreview(currentInputs);
-    setPreviewSections(sections);
-
-    flashToastRef.current();
-  }, [currentInputs, trackNumber]);
+    generateStyle(currentInputs as Record<string, string>);
+  }, [currentInputs, generateStyle]);
 
   // 리셋
   const handleReset = useCallback(() => {
@@ -290,7 +266,7 @@ export default function Home() {
       )}
 
       {/* Phase 2: 결과 (Style + Lyrics 한 화면) */}
-      {phase === "result" && output && (
+      {phase === "result" && (
         <div className="flex-1 flex justify-center overflow-hidden">
           <div className="w-full max-w-5xl flex">
             {/* 왼쪽: 결과 */}
@@ -307,15 +283,33 @@ export default function Home() {
                   처음부터 다시
                 </button>
 
+                {/* 스타일 생성 중 로딩 */}
+                {generating && (
+                  <div style={{ textAlign: "center", padding: "60px 0" }}>
+                    <svg className="animate-spin" style={{ margin: "0 auto 16px" }} width="32" height="32" viewBox="0 0 24 24">
+                      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
+                      <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>Style of Music 생성 중...</p>
+                    <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "4px" }}>AI가 설정을 분석하고 스타일 프롬프트를 작성하고 있습니다</p>
+                  </div>
+                )}
+
+                {/* 생성 완료 시 표시 */}
+                {!generating && output && (
+                  <>
                 {/* 프로듀서 분석 노트 */}
                 {forensicLog && (
                   <div style={{ backgroundColor: "#fff7ed", border: "1px solid rgba(249,115,22,0.3)", borderRadius: "16px", padding: "16px 20px" }}>
-                    <h3 style={{ fontSize: "12px", fontWeight: 700, color: "#f97316", marginBottom: "8px" }}>프로듀서 분석 노트</h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <h3 style={{ fontSize: "12px", fontWeight: 700, color: "#f97316" }}>프로듀서 분석 노트</h3>
+                    </div>
                     <pre style={{ fontSize: "11px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.6" }}>{forensicLog}</pre>
                   </div>
                 )}
 
                 {/* Style of Music */}
+                <div>
                 <OutputBlock
                   title="Style of Music"
                   subtitle="Suno 'Style of Music' 필드에 붙여넣기"
@@ -323,6 +317,11 @@ export default function Home() {
                   charLimit={900}
                   onEdit={(newContent) => setOutput((prev) => prev ? { ...prev, style: newContent } : prev)}
                 />
+                <button onClick={handleRegenerateStyle}
+                  style={{ fontSize: "11px", color: "#f97316", background: "none", border: "none", cursor: "pointer", fontWeight: 600, marginTop: "-8px" }}>
+                  스타일 다시 생성
+                </button>
+                </div>
 
                 {/* Lyrics — 가사 설정 + 생성 */}
                 <LyricsSection
@@ -337,6 +336,8 @@ export default function Home() {
                   onGenerateVariation={handleGenerateVariation}
                   trackNumber={trackNumber}
                 />
+                  </>
+                )}
               </div>
             </div>
 
