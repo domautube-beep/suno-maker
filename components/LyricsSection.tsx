@@ -168,8 +168,8 @@ function Pill({ label, selected, onClick }: { label: string; selected: boolean; 
       padding: "6px 14px", borderRadius: "9999px", fontSize: "11px",
       fontWeight: selected ? 600 : 500,
       backgroundColor: selected ? "#0a0a0a" : "#fff",
-      color: selected ? "#fff" : "#737373",
-      border: selected ? "1px solid #0a0a0a" : "1px solid #d4d4d4",
+      color: selected ? "#fff" : "#0a0a0a",
+      border: selected ? "1px solid #0a0a0a" : "1px solid #a3a3a3",
       cursor: "pointer", transition: "all 0.15s ease",
     }}>
       {label}
