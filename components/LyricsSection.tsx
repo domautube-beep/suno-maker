@@ -162,14 +162,14 @@ const TECHNIQUE_TAGS = [
 ];
 
 // === 버튼 컴포넌트 ===
-function Pill({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+function Pill({ label, selected, dimmed, onClick }: { label: string; selected: boolean; dimmed?: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
       padding: "6px 14px", borderRadius: "9999px", fontSize: "11px",
-      fontWeight: selected ? 600 : 500,
+      fontWeight: selected ? 600 : 400,
       backgroundColor: selected ? "#0a0a0a" : "#fff",
-      color: selected ? "#fff" : "#0a0a0a",
-      border: selected ? "1px solid #0a0a0a" : "1px solid #a3a3a3",
+      color: selected ? "#fff" : dimmed ? "#d4d4d4" : "#0a0a0a",
+      border: selected ? "1px solid #0a0a0a" : dimmed ? "1px solid #e5e5e5" : "1px solid #a3a3a3",
       cursor: "pointer", transition: "all 0.15s ease",
     }}>
       {label}
@@ -441,32 +441,32 @@ export default function LyricsSection({
 
         <SubLabel label="Voice Type" />
         <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VP_VOICE_TYPE.map((v, i) => <Pill key={v.label} label={v.label} selected={vpVoice === i} onClick={() => setVpVoice(i)} />)}
+          {VP_VOICE_TYPE.map((v, i) => <Pill key={v.label} label={v.label} selected={vpVoice === i} dimmed={vpVoice >= 0 && vpVoice !== i} onClick={() => setVpVoice(i)} />)}
         </div>
 
         <SubLabel label="Timbre (음색)" />
         <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VP_TIMBRE.map((t, i) => <Pill key={t.label} label={t.label} selected={vpTimbre === i} onClick={() => setVpTimbre(i)} />)}
+          {VP_TIMBRE.map((t, i) => <Pill key={t.label} label={t.label} selected={vpTimbre === i} dimmed={vpTimbre >= 0 && vpTimbre !== i} onClick={() => setVpTimbre(i)} />)}
         </div>
 
         <SubLabel label="Articulation (발음)" />
         <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VP_ARTICULATION.map((a, i) => <Pill key={a.label} label={a.label} selected={vpArticulation === i} onClick={() => setVpArticulation(i)} />)}
+          {VP_ARTICULATION.map((a, i) => <Pill key={a.label} label={a.label} selected={vpArticulation === i} dimmed={vpArticulation >= 0 && vpArticulation !== i} onClick={() => setVpArticulation(i)} />)}
         </div>
 
         <SubLabel label="Delivery (전달 방식)" />
         <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VP_DELIVERY.map((d, i) => <Pill key={d.label} label={d.label} selected={vpDelivery === i} onClick={() => setVpDelivery(i)} />)}
+          {VP_DELIVERY.map((d, i) => <Pill key={d.label} label={d.label} selected={vpDelivery === i} dimmed={vpDelivery >= 0 && vpDelivery !== i} onClick={() => setVpDelivery(i)} />)}
         </div>
 
         <SubLabel label="Reverb (공간감)" />
         <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
-          {VP_REVERB.map((r, i) => <Pill key={r.label} label={r.label} selected={vpReverb === i} onClick={() => setVpReverb(i)} />)}
+          {VP_REVERB.map((r, i) => <Pill key={r.label} label={r.label} selected={vpReverb === i} dimmed={vpReverb >= 0 && vpReverb !== i} onClick={() => setVpReverb(i)} />)}
         </div>
 
         <SubLabel label="Evolution (보컬 변화)" />
         <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-          {VP_EVOLUTION.map((e, i) => <Pill key={e.label} label={e.label} selected={vpEvolution === i} onClick={() => setVpEvolution(i)} />)}
+          {VP_EVOLUTION.map((e, i) => <Pill key={e.label} label={e.label} selected={vpEvolution === i} dimmed={vpEvolution >= 0 && vpEvolution !== i} onClick={() => setVpEvolution(i)} />)}
         </div>
       </div>
 
@@ -560,7 +560,7 @@ export default function LyricsSection({
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionLabel label="Density" />
         <div style={{ display: "flex", gap: "6px" }}>
-          {DENSITY_OPTIONS.map((d) => <Pill key={d.value} label={d.label} selected={density === d.value} onClick={() => setDensity(d.value)} />)}
+          {DENSITY_OPTIONS.map((d) => <Pill key={d.value} label={d.label} selected={density === d.value} dimmed={!!density && density !== d.value} onClick={() => setDensity(d.value)} />)}
         </div>
         {density && <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px" }}>{DENSITY_OPTIONS.find((d) => d.value === density)?.desc}</p>}
       </div>
@@ -569,7 +569,7 @@ export default function LyricsSection({
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionLabel label="Emotion Arc" />
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {EMOTION_ARCS.map((arc, i) => <Pill key={arc.label} label={arc.label} selected={emotionArc === i} onClick={() => setEmotionArc(i)} />)}
+          {EMOTION_ARCS.map((arc, i) => <Pill key={arc.label} label={arc.label} selected={emotionArc === i} dimmed={emotionArc >= 0 && emotionArc !== i} onClick={() => setEmotionArc(i)} />)}
         </div>
         {emotionArc >= 0 && (
           <>
