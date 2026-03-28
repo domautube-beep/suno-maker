@@ -17,73 +17,91 @@ interface LyricsSectionProps {
   trackNumber?: number;
 }
 
-// 송폼 프리셋
-const SONG_FORMS = [
-  { label: "기본", value: "Verse 1 → Hook → Chorus → Verse 2 → Bridge → Hook → Chorus → Outro", desc: "V-H-C-V-B-H-C-O" },
-  { label: "짧게", value: "Verse 1 → Chorus → Verse 2 → Chorus → Outro", desc: "V-C-V-C-O" },
-  { label: "랩", value: "Verse 1 → Verse 2 → Hook → Chorus → Bridge → Chorus", desc: "V-V-H-C-B-C" },
-  { label: "발라드", value: "Verse 1 → Chorus → Verse 2 → Chorus → Bridge → Final Chorus", desc: "V-C-V-C-B-C" },
+// === 가사 밀도 ===
+const DENSITY_OPTIONS = [
+  { label: "짧게", value: "short", desc: "Verse 2줄, Chorus 2줄" },
+  { label: "보통", value: "medium", desc: "Verse 4줄, Chorus 4줄" },
+  { label: "길게", value: "long", desc: "Verse 6줄+, Chorus 4줄+" },
 ];
 
-// 감정 흐름
+// === 감정 흐름 ===
 const EMOTION_ARCS = [
-  { label: "잔잔→폭발", value: "시작은 조용하고 친밀하게, 점진적으로 감정이 고조되어 코러스에서 폭발. 브릿지에서 다시 가라앉았다가 마지막 코러스에서 최고조.", bars: [1, 2, 4, 2, 1, 4, 5, 2] },
+  { label: "잔잔→폭발", value: "시작은 조용하고 친밀하게, 점진적으로 고조되어 코러스에서 폭발. 브릿지에서 침잠 후 마지막 코러스에서 최고조.", bars: [1, 2, 4, 2, 1, 4, 5, 2] },
   { label: "일정하게", value: "처음부터 끝까지 일정한 에너지. 그루브와 반복으로 중독성 유지.", bars: [3, 3, 3, 3, 3, 3, 3, 3] },
-  { label: "폭발→잔잔", value: "강렬하게 시작해서 점점 감정을 내려놓는 구조. 마지막에 속삭이듯 끝남.", bars: [5, 4, 3, 4, 3, 2, 2, 1] },
+  { label: "폭발→잔잔", value: "강렬하게 시작해서 점점 내려놓는 구조. 마지막에 속삭이듯 끝남.", bars: [5, 4, 3, 4, 3, 2, 2, 1] },
   { label: "롤러코스터", value: "벌스에서 낮고 코러스에서 높은 극적 대비. 섹션마다 에너지 급변.", bars: [2, 1, 5, 2, 1, 5, 2, 1] },
 ];
 
-// 가사 밀도
-const DENSITY_OPTIONS = [
-  { label: "짧게", value: "short", desc: "Verse 2줄, Chorus 2줄 — 미니멀" },
-  { label: "보통", value: "medium", desc: "Verse 4줄, Chorus 4줄 — 표준" },
-  { label: "길게", value: "long", desc: "Verse 6줄+, Chorus 4줄+ — 풍부한 서사" },
+// === VOCAL PROFILE 옵션 ===
+const VP_VOICE_TYPE = [
+  { label: "남성 저음", value: "Male low baritone, deep chest resonance, grounded presence" },
+  { label: "남성 중음", value: "Male mid-range tenor, warm natural presence, conversational" },
+  { label: "남성 고음", value: "Male high tenor, bright falsetto capable, airy top register" },
+  { label: "여성 저음", value: "Female low alto, rich warm depth, smoky undertone" },
+  { label: "여성 중음", value: "Female mid-range mezzo, soulful with slight rasp, clear" },
+  { label: "여성 고음", value: "Female high soprano, airy and light, crystalline top notes" },
 ];
 
-// 보컬 옵션
-const VOICE_TYPES = [
-  { label: "남성 저음", value: "male, low baritone, deep chest resonance" },
-  { label: "남성 중음", value: "male, mid-range tenor, warm natural presence" },
-  { label: "남성 고음", value: "male, high tenor, bright falsetto capable" },
-  { label: "여성 저음", value: "female, low alto, rich warm depth" },
-  { label: "여성 중음", value: "female, mid-range mezzo, clear and balanced" },
-  { label: "여성 고음", value: "female, high soprano, airy and light" },
-];
-const TIMBRES = [
-  { label: "허스키", value: "husky grain, rough warmth, textured edge" },
-  { label: "매끈한", value: "smooth silk, clean resonance, polished tone" },
-  { label: "공기감", value: "airy breathy, whisper-close, soft presence" },
-  { label: "파워풀", value: "powerful chest, full projection, bold resonance" },
-  { label: "소울풀", value: "soulful richness, gospel-influenced, deep emotion" },
-  { label: "거친", value: "raw rasp, gritty attack, distorted edge" },
-];
-const DELIVERIES = [
-  { label: "대화체", value: "conversational intimacy, natural phrasing" },
-  { label: "감정폭발", value: "emotional outburst, crescendo peaks, belting" },
-  { label: "나른한", value: "laid-back lazy, half-whisper, effortless cool" },
-  { label: "리드미컬", value: "rhythmic precision, groove-locked, punchy" },
-  { label: "랩", value: "rap flow, sharp articulation, punchline delivery" },
-  { label: "속삭임", value: "whisper singing, ASMR-close, breath-heavy" },
+const VP_TIMBRE = [
+  { label: "허스키", value: "Husky grain, rough warmth, textured edge, slight grit on sustains" },
+  { label: "매끈한", value: "Smooth silk, clean resonance, polished tone, studio-refined clarity" },
+  { label: "공기감", value: "Airy breathy, whisper-close, soft presence, ASMR-adjacent intimacy" },
+  { label: "아날로그", value: "Warm analog texture, slight breathiness, vintage tape saturation" },
+  { label: "파워풀", value: "Powerful chest projection, full resonance, bold dynamic range" },
+  { label: "소울풀", value: "Soulful richness, gospel-influenced warmth, deep emotional color" },
 ];
 
-// 장르별 작법 가이드
+const VP_ARTICULATION = [
+  { label: "자연스러운", value: "Natural flow, clear consonants, relaxed delivery, effortless diction" },
+  { label: "정밀한", value: "Precise diction, crisp consonants, sharp word boundaries" },
+  { label: "흘리는", value: "Flowing legato, blurred word edges, dreamy connected phrasing" },
+  { label: "끊어치는", value: "Staccato attack, punchy syllables, rhythmic word separation" },
+];
+
+const VP_DELIVERY = [
+  { label: "속삭임→벨팅", value: "Starts whispered and close, builds to confident belting, dynamic range" },
+  { label: "대화체", value: "Conversational intimacy throughout, natural phrasing, storytelling tone" },
+  { label: "감정폭발", value: "Emotional outburst peaks, crescendo-driven, cathartic release" },
+  { label: "나른한", value: "Laid-back lazy delivery, half-whisper, effortless cool, behind-beat feel" },
+  { label: "랩 플로우", value: "Rhythmic precision, sharp articulation, groove-locked, punchline delivery" },
+  { label: "일정한 힘", value: "Consistent power, sustained energy, confident projection throughout" },
+];
+
+const VP_REVERB = [
+  { label: "드라이", value: "Close-mic dry, intimate distance, minimal reverb, raw presence" },
+  { label: "룸", value: "Medium room reverb, balanced wet/dry, natural space" },
+  { label: "확장형", value: "Intimate space expanding to cathedral, dynamic reverb shift" },
+  { label: "홀", value: "Large hall reverb, wide and distant, ethereal presence" },
+  { label: "빈티지", value: "Vintage plate reverb, warm tail, classic studio color" },
+  { label: "Lo-Fi", value: "Lo-fi filtered reverb, tape warmth, vintage compression" },
+];
+
+const VP_EVOLUTION = [
+  { label: "속삭임→열정", value: "Whisper intimacy → conversational strength → soaring passion → resolved warmth" },
+  { label: "일관된 힘", value: "Consistent confident delivery → subtle intensity shifts → powerful finale" },
+  { label: "폭발→침잠", value: "Bold opening → controlled descent → whispered bridge → gentle resolution" },
+  { label: "점진적 상승", value: "Close whisper verse → open supported chorus → exposed bridge → layered final chorus with doubles" },
+  { label: "감정 롤러코스터", value: "Intimate verse → explosive chorus → stripped bridge → cathartic finale" },
+];
+
+// === 장르별 가이드 ===
 const GENRE_GUIDES: Record<string, string> = {
-  hiphop: "힙합/랩: 라임 밀도 높게, 펀치라인 필수, 플로우 변주, 스네어 위치에 강세 정렬",
+  hiphop: "힙합/랩: 라임 밀도 높게, 펀치라인 필수, 플로우 변주, 스네어 위치에 강세 정렬, A/B bars(장면→반전)",
   rnb: "R&B: 리듬감 있는 프레이징, 그루브 반복, 허밍 가능한 멜로디, 감성적 딜리버리",
-  ballad: "발라드: 감정적 서사, 긴 호흡의 서정적 문장, 절제된 반복, 감정 곡선 중시",
-  edm: "EDM/댄스: 짧은 반복 훅, 에너지 상승 구조, 챈트 가능한 코러스",
-  rock: "록: 선언적이고 강렬한 문장, 파워풀한 코러스, 반항적 에너지",
-  kpop: "K-Pop: 캐치한 훅, 한영 믹스 자연스럽게, 포인트 안무 가능한 리듬",
+  ballad: "발라드: 감정적 서사, 긴 호흡, 서정적 이미지, 절제된 반복, 감정 곡선 중시",
+  edm: "EDM/댄스: 짧은 반복 훅, 에너지 상승 구조, 챈트 가능한 코러스, Build→Drop 연동",
+  rock: "록: 선언적이고 강렬한 문장, 파워풀한 코러스, 반항적 에너지, Bridge 폭발/침잠",
+  kpop: "K-Pop: 캐치한 훅, 한영 믹스 자연스럽게, Pre-Chorus 리프트 → Chorus 피크",
   pop: "팝: 클린하고 보편적인 어휘, 기억하기 쉬운 멜로디 라인, 라디오 친화적",
-  trot: "트로트: 직설적 감정 표현, 반복되는 후렴, 대중적이고 친근한 어휘",
-  lofi: "Lo-Fi: 나른하고 편안한 어투, 일상적 장면 묘사, 느슨한 리듬감",
+  trot: "트로트: 직설적 감정, 반복 후렴, 대중적 어휘, 멜로디 훅 밀도",
+  lofi: "Lo-Fi: 나른한 어투, 일상 장면 묘사, 느슨한 리듬감, 자유 구조 허용",
   jazz: "재즈: 세련된 어휘, 은유적 표현, 스윙 리듬에 맞는 프레이징",
-  cinematic: "시네마틱: 장대한 서사, 시각적 이미지, 감정의 스케일 극대화",
+  cinematic: "시네마틱: 장대한 서사, 시각적 이미지, 감정 스케일 극대화",
   indie: "인디: 독특한 관점, 실험적 구조, 개인적이고 솔직한 어투",
 };
 
-// 선택지 버튼 컴포넌트
-function PillButton({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
+// === 버튼 컴포넌트 ===
+function Pill({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
       padding: "6px 14px", borderRadius: "9999px", fontSize: "11px",
@@ -98,49 +116,79 @@ function PillButton({ label, selected, onClick }: { label: string; selected: boo
   );
 }
 
+function SectionLabel({ label, sub }: { label: string; sub?: string }) {
+  return (
+    <div style={{ marginBottom: "8px" }}>
+      <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
+      {sub && <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "2px" }}>{sub}</p>}
+    </div>
+  );
+}
+
+function SubLabel({ label }: { label: string }) {
+  return <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>{label}</p>;
+}
+
+// === 메인 컴포넌트 ===
 export default function LyricsSection({
-  style,
-  language,
-  currentSettings,
-  apiKey,
-  provider,
-  onLyricsUpdate,
+  style, language, currentSettings, apiKey, provider, onLyricsUpdate,
 }: LyricsSectionProps) {
-  // Lyrics 전용 설정만 (Language, Vocal, Song Form은 Chat Flow에서 이미 수집)
-  const [emotionArc, setEmotionArc] = useState(-1);
+  // 가사 설정
   const [density, setDensity] = useState("");
+  const [emotionArc, setEmotionArc] = useState(-1);
+
+  // Vocal Profile
+  const [vpVoice, setVpVoice] = useState(-1);
+  const [vpTimbre, setVpTimbre] = useState(-1);
+  const [vpArticulation, setVpArticulation] = useState(-1);
+  const [vpDelivery, setVpDelivery] = useState(-1);
+  const [vpReverb, setVpReverb] = useState(-1);
+  const [vpEvolution, setVpEvolution] = useState(-1);
+
+  // 금지어
   const [bannedWords, setBannedWords] = useState(DEFAULT_BANNED_WORDS);
   const [showBannedEdit, setShowBannedEdit] = useState(false);
-  const [copied, setCopied] = useState(false);
+
+  // 생성 상태
   const [generating, setGenerating] = useState(false);
   const [generatedLyrics, setGeneratedLyrics] = useState("");
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
 
-  const isReady = emotionArc >= 0 && density;
+  // 선택 완료 여부
+  const isReady = density && emotionArc >= 0 && vpVoice >= 0 && vpTimbre >= 0 && vpDelivery >= 0 && vpReverb >= 0 && vpEvolution >= 0;
 
-  // 보컬 프로필 — Chat Flow에서 수집한 vocal 설정 사용
+  // Vocal Profile 프롬프트 조합
   const buildVocalProfile = () => {
-    const vocal = currentSettings?.vocal || "";
-    if (!vocal) return "보컬 설정 없음 — 자유롭게 결정해줘";
-    // vocal은 "|" 구분자로 타입/음색/딜리버리/공간감 연결
-    const parts = vocal.split("|").map((p) => p.trim()).filter(Boolean);
-    return parts.join("\n");
+    if (!isReady) return "";
+    const voice = VP_VOICE_TYPE[vpVoice];
+    const timbre = VP_TIMBRE[vpTimbre];
+    const artic = vpArticulation >= 0 ? VP_ARTICULATION[vpArticulation] : VP_ARTICULATION[0];
+    const deliv = VP_DELIVERY[vpDelivery];
+    const reverb = VP_REVERB[vpReverb];
+    const evo = VP_EVOLUTION[vpEvolution];
+
+    return [
+      `[VOCAL_PROFILE: ${voice.value.split(",")[0]}, ${timbre.value.split(",")[0]}, ${deliv.value.split(",")[0]}]`,
+      `[VOICE_TYPE: ${voice.value}]`,
+      `[TIMBRE: ${timbre.value}]`,
+      `[ARTICULATION: ${artic.value}]`,
+      `[VIBRATO: Subtle and controlled, deepens during emotional peaks]`,
+      `[DELIVERY: ${deliv.value}]`,
+      `[REVERB: ${reverb.value}]`,
+      `[PERFORMANCE_TRAITS: Controlled breath support, natural crescendo into hook]`,
+      `[Evolution: ${evo.value}]`,
+    ].join("\n");
   };
 
-  // 장르 가이드 — 현재 장르에 맞는 것만
-  const getGenreGuide = () => {
-    const genre = currentSettings?.genre || "";
-    return GENRE_GUIDES[genre] || "";
-  };
-
-  // 프롬프트 조합
+  // 전체 프롬프트
   const buildFullPrompt = () => {
     const selectedArc = EMOTION_ARCS[emotionArc];
     const selectedDensity = DENSITY_OPTIONS.find((d) => d.value === density)!;
     const langLabel = language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어 + English 믹스";
-    const genreGuide = getGenreGuide();
+    const genre = currentSettings?.genre || "";
+    const genreGuide = GENRE_GUIDES[genre] || "";
 
-    // 설정 요약 — Chat Flow에서 수집한 값 전부 포함
     const settingsLines: string[] = [];
     if (currentSettings?.oneLiner) settingsLines.push(`핵심 문장: "${currentSettings.oneLiner}"`);
     if (currentSettings?.genre) settingsLines.push(`장르: ${currentSettings.genre}`);
@@ -160,42 +208,32 @@ export default function LyricsSection({
     ];
 
     if (settingsLines.length > 0) {
-      parts.push(`=== 곡 설정 (사운드 방향) ===`);
-      parts.push(settingsLines.join("\n"));
-      parts.push(``);
+      parts.push(`=== 곡 설정 ===`, settingsLines.join("\n"), ``);
     }
 
-    parts.push(`=== Style of Music (생성 완료된 스타일 — 가사의 리듬감/밀도 참고) ===`);
-    parts.push(style);
-    parts.push(``);
-
-    parts.push(`=== 보컬 설정 (Chat Flow에서 선택됨) ===`);
-    parts.push(buildVocalProfile());
-    parts.push(``);
-
-    parts.push(`=== 가사 구조 설정 ===`);
+    parts.push(`=== Style of Music ===`, style, ``);
+    parts.push(`=== VOCAL PROFILE (가사 최상단에 그대로 포함) ===`, buildVocalProfile(), ``);
+    parts.push(`=== 가사 구조 ===`);
     parts.push(`가사 언어: ${langLabel}`);
     parts.push(`가사 밀도: ${selectedDensity.desc}`);
     parts.push(`감정 흐름: ${selectedArc.value}`);
     parts.push(``);
 
     if (genreGuide) {
-      parts.push(`=== 장르별 작법 가이드 ===`);
-      parts.push(genreGuide);
-      parts.push(``);
+      parts.push(`=== 장르 작법 ===`, genreGuide, ``);
     }
 
-    parts.push(`=== 출력 형식 ===`);
+    parts.push(`=== 출력 ===`);
     parts.push(`1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`);
-    parts.push(`2. 각 섹션: [SECTION: 이름] + [VOCAL_PROMPT: ...] + [LAYER: ...] + [Texture: ...] + 가사`);
-    parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER의 강도를 섹션마다 변화시킬 것`);
+    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사`);
+    parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER 강도를 섹션마다 변화`);
     parts.push(`4. 코드블록 없이 텍스트만 출력`);
-    parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태로 출력`);
+    parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
 
     return parts.join("\n");
   };
 
-  // API로 가사 생성
+  // API 호출
   const handleGenerate = async () => {
     setGenerating(true);
     setError("");
@@ -213,53 +251,74 @@ export default function LyricsSection({
         setError(data.error || "생성 실패");
       }
     } catch {
-      setError("API 호출 실패. 네트워크를 확인해주세요.");
+      setError("API 호출 실패");
     }
     setGenerating(false);
   };
 
-  // 생성된 가사 복사
   const handleCopyLyrics = async () => {
     await navigator.clipboard.writeText(generatedLyrics);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // 섹션 헤더 컴포넌트
-  const SectionHeader = ({ label }: { label: string }) => (
-    <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</p>
-  );
-
   return (
     <div style={{ border: "1px solid #e5e5e5", borderRadius: "16px", overflow: "hidden" }}>
       {/* 헤더 */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics 프롬프트 생성기</h3>
-        <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>
-          아래 설정을 선택하면 가사 생성용 프롬프트가 조합됩니다
-        </p>
+        <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics</h3>
+        <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>보컬 + 가사 설정 → AI 가사 생성</p>
       </div>
 
-      {/* 1. Density */}
+      {/* 1. VOCAL PROFILE */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionHeader label="Density" />
+        <SectionLabel label="Vocal Profile" sub="Suno가 보컬을 렌더링하는 방식을 결정합니다" />
+
+        <SubLabel label="Voice Type" />
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VP_VOICE_TYPE.map((v, i) => <Pill key={v.label} label={v.label} selected={vpVoice === i} onClick={() => setVpVoice(i)} />)}
+        </div>
+
+        <SubLabel label="Timbre (음색)" />
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VP_TIMBRE.map((t, i) => <Pill key={t.label} label={t.label} selected={vpTimbre === i} onClick={() => setVpTimbre(i)} />)}
+        </div>
+
+        <SubLabel label="Articulation (발음)" />
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VP_ARTICULATION.map((a, i) => <Pill key={a.label} label={a.label} selected={vpArticulation === i} onClick={() => setVpArticulation(i)} />)}
+        </div>
+
+        <SubLabel label="Delivery (전달 방식)" />
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VP_DELIVERY.map((d, i) => <Pill key={d.label} label={d.label} selected={vpDelivery === i} onClick={() => setVpDelivery(i)} />)}
+        </div>
+
+        <SubLabel label="Reverb (공간감)" />
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VP_REVERB.map((r, i) => <Pill key={r.label} label={r.label} selected={vpReverb === i} onClick={() => setVpReverb(i)} />)}
+        </div>
+
+        <SubLabel label="Evolution (보컬 변화)" />
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          {VP_EVOLUTION.map((e, i) => <Pill key={e.label} label={e.label} selected={vpEvolution === i} onClick={() => setVpEvolution(i)} />)}
+        </div>
+      </div>
+
+      {/* 2. DENSITY */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <SectionLabel label="Density" />
         <div style={{ display: "flex", gap: "6px" }}>
-          {DENSITY_OPTIONS.map((d) => (
-            <PillButton key={d.value} label={d.label}
-              selected={density === d.value}
-              onClick={() => setDensity(d.value)} />
-          ))}
+          {DENSITY_OPTIONS.map((d) => <Pill key={d.value} label={d.label} selected={density === d.value} onClick={() => setDensity(d.value)} />)}
         </div>
         {density && <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px" }}>{DENSITY_OPTIONS.find((d) => d.value === density)?.desc}</p>}
       </div>
 
-      {/* 2. Emotion Arc */}
+      {/* 3. EMOTION ARC */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionHeader label="Emotion Arc" />
+        <SectionLabel label="Emotion Arc" />
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {EMOTION_ARCS.map((arc, i) => (
-            <PillButton key={arc.label} label={arc.label} selected={emotionArc === i} onClick={() => setEmotionArc(i)} />
-          ))}
+          {EMOTION_ARCS.map((arc, i) => <Pill key={arc.label} label={arc.label} selected={emotionArc === i} onClick={() => setEmotionArc(i)} />)}
         </div>
         {emotionArc >= 0 && (
           <>
@@ -282,31 +341,25 @@ export default function LyricsSection({
         )}
       </div>
 
-      {/* 6. 금지어 설정 */}
+      {/* 4. BANNED WORDS */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <SectionHeader label="Banned Words" />
+          <SectionLabel label="Banned Words" />
           <button onClick={() => setShowBannedEdit(!showBannedEdit)}
             style={{ fontSize: "10px", color: "#a3a3a3", background: "none", border: "none", cursor: "pointer" }}>
             {showBannedEdit ? "닫기" : "편집"}
           </button>
         </div>
         {showBannedEdit ? (
-          <textarea
-            value={bannedWords}
-            onChange={(e) => setBannedWords(e.target.value)}
-            style={{
-              width: "100%", minHeight: "60px", border: "1px solid #e5e5e5", borderRadius: "8px",
-              padding: "8px", fontSize: "11px", fontFamily: "monospace", resize: "vertical", outline: "none",
-            }}
-            placeholder="쉼표로 구분하여 입력 (예: 네온, 번져, 빛나다)"
-          />
+          <textarea value={bannedWords} onChange={(e) => setBannedWords(e.target.value)}
+            style={{ width: "100%", minHeight: "60px", border: "1px solid #e5e5e5", borderRadius: "8px", padding: "8px", fontSize: "11px", fontFamily: "monospace", resize: "vertical", outline: "none" }}
+            placeholder="쉼표로 구분" />
         ) : (
           <p style={{ fontSize: "10px", color: "#a3a3a3", lineHeight: "1.6" }}>{bannedWords}</p>
         )}
       </div>
 
-      {/* 가사 생성 버튼 + 결과 */}
+      {/* 생성 영역 */}
       <div style={{ padding: "20px" }}>
         {/* 로딩 */}
         {generating && (
@@ -316,7 +369,6 @@ export default function LyricsSection({
               <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
             <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>가사 생성 중...</p>
-            <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "4px" }}>AI가 설정에 맞는 가사를 작성하고 있습니다</p>
           </div>
         )}
 
@@ -327,49 +379,40 @@ export default function LyricsSection({
           </div>
         )}
 
-        {/* 생성된 가사 */}
+        {/* 생성 결과 */}
         {!generating && generatedLyrics && (
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", textTransform: "uppercase", letterSpacing: "0.05em" }}>생성된 가사</p>
+              <SectionLabel label="생성된 가사" />
               <div style={{ display: "flex", gap: "6px" }}>
                 <button onClick={handleCopyLyrics} style={{
                   padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
                   backgroundColor: copied ? "#f0fdf4" : "#fff", color: copied ? "#16a34a" : "#a3a3a3",
                   border: copied ? "1px solid #bbf7d0" : "1px solid #e5e5e5", cursor: "pointer",
-                }}>
-                  {copied ? "복사됨!" : "복사"}
-                </button>
+                }}>{copied ? "복사됨!" : "복사"}</button>
                 <button onClick={handleGenerate} style={{
                   padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
-                  backgroundColor: "#fff7ed", color: "#f97316",
-                  border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer",
-                }}>
-                  다시 생성
-                </button>
+                  backgroundColor: "#fff7ed", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer",
+                }}>다시 생성</button>
               </div>
             </div>
             <pre style={{
-              fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap",
-              lineHeight: "1.7", fontFamily: "monospace",
-              maxHeight: "500px", overflowY: "auto",
-              padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px",
-              border: "1px solid #e5e5e5",
-            }}>
-              {generatedLyrics}
-            </pre>
+              fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap", lineHeight: "1.7",
+              fontFamily: "monospace", maxHeight: "500px", overflowY: "auto",
+              padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5",
+            }}>{generatedLyrics}</pre>
             <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "8px", textAlign: "center" }}>
-              이 가사를 Suno의 Lyrics 필드에 붙여넣으세요
+              Suno의 Lyrics 필드에 붙여넣으세요
             </p>
           </div>
         )}
 
-        {/* 생성 버튼 (결과 없고 로딩 아닐 때) */}
+        {/* 생성 버튼 */}
         {!generating && !generatedLyrics && (
           !isReady ? (
-            <div style={{ textAlign: "center", padding: "12px 0" }}>
-              <p style={{ fontSize: "12px", color: "#d4d4d4", fontWeight: 500 }}>모든 항목을 선택하면 가사를 생성할 수 있습니다</p>
-            </div>
+            <p style={{ fontSize: "12px", color: "#d4d4d4", fontWeight: 500, textAlign: "center", padding: "12px 0" }}>
+              Vocal Profile + Density + Emotion Arc를 모두 선택해주세요
+            </p>
           ) : (
             <button onClick={handleGenerate} style={{
               width: "100%", padding: "14px", borderRadius: "12px", backgroundColor: "#f97316",
