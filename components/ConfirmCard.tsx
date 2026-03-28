@@ -88,7 +88,6 @@ export default function ConfirmCard({ inputs, onConfirm, onReset, onEditStep }: 
     { key: "timeSignature", label: "박자" },
     { key: "era", label: "시대" },
     { key: "texture", label: "질감" },
-    { key: "vocal", label: "보컬" },
     { key: "reverb", label: "리버브" },
   ];
 

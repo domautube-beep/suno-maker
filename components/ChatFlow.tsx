@@ -8,7 +8,7 @@ import ChatBubble from "./ChatBubble";
 import TextInput from "./TextInput";
 import SelectGrid from "./SelectGrid";
 import VibeSelector from "./VibeSelector";
-import VocalSelector from "./VocalSelector";
+// VocalSelector는 Lyrics 섹션으로 이동
 import GenreSelector from "./GenreSelector";
 import InstrumentSelector from "./InstrumentSelector";
 import TextureSelector from "./TextureSelector";
@@ -30,7 +30,6 @@ const DEFAULT_INPUT: SunoInput = {
   timeSignature: "",
   era: "",
   texture: "",
-  vocal: "",
   reverb: "",
   language: "",
 };
@@ -241,13 +240,6 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
                 />
               )}
 
-              {step.id === "vocal" && (
-                <VocalSelector
-                  onSubmit={(val) => handleAnswer(step.id, val)}
-                  onSkip={() => handleSkip(step.id)}
-                />
-              )}
-
               {step.id === "vibe" && (
                 <VibeSelector
                   onSubmit={(val) => handleAnswer(step.id, val)}
@@ -257,7 +249,7 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
                 />
               )}
 
-              {step.type === "text" && step.id !== "vibe" && step.id !== "vocal" && step.id !== "instruments" && (
+              {step.type === "text" && step.id !== "vibe" && step.id !== "instruments" && (
                 <TextInput
                   placeholder={step.placeholder}
                   required={step.required}

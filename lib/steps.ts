@@ -163,8 +163,8 @@ export const STEPS: Step[] = [
   },
   {
     id: "reverb",
-    question: "보컬 공간감은?",
-    tooltip: "보컬이 어디서 부르는 느낌인지. 가까운 속삭임부터 콘서트홀까지.",
+    question: "사운드 공간감은?",
+    tooltip: "곡 전체의 공간감. 가까운 느낌부터 콘서트홀까지.",
     type: "select",
     options: [
       { label: "Dry (가까운 속삭임)", value: "dry" },
