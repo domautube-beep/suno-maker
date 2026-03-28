@@ -148,18 +148,18 @@ const GENRE_GUIDES: Record<string, string> = {
 
 // === 작법 기법 태그 ===
 const TECHNIQUE_TAGS = [
-  { id: "parallelism", label: "대구법", desc: "미러링/대립 구조로 긴장감과 리듬 생성", emoji: "⟷", example: "세상은 loud / 난 hush bush steady" },
-  { id: "internal_rhyme", label: "내부라임", desc: "줄 안에서 모음/자음 흐름을 연결", emoji: "🔗", example: "below, 내 그림자 grow / 한 발씩 slow" },
-  { id: "show_dont_tell", label: "장면묘사", desc: "감정을 직접 말하지 않고 사물/행동으로 표현", emoji: "👁", example: "배달 2인분 시켜놓고 혼자 다 먹었어 (= 외로움)" },
-  { id: "rhythm_markers", label: "리듬마커", desc: "—, (), ~, 의성어로 호흡/끊김/에코 표현", emoji: "—", example: "슬렁 — (uh) 슬렁, 멈—추진 않어" },
-  { id: "repetition_hook", label: "반복훅", desc: "핵심 구절을 의도적으로 반복해 기억에 남김", emoji: "🔁", example: "아직도 여기야 (여기야) / 아직도 여기야" },
-  { id: "object_motif", label: "소품모티프", desc: "2~3개 사물을 반복 사용하되 맥락을 변화", emoji: "🔑", example: "스니커즈 밑창 닳아 → 발자국 kick, boom" },
-  { id: "punchline", label: "펀치라인", desc: "반전/임팩트가 있는 결정적 한 줄", emoji: "💥", example: "내가 쓴 가사가 슥 닿아 just let it flow" },
-  { id: "ko_en_mix", label: "한영교차", desc: "한국어+영어를 교차 배치해 라임 강화", emoji: "🌐", example: "차가운 공기, 내 생각은 float / 이 밤은 내가 따낸 quote" },
-  { id: "bounce", label: "바운스", desc: "짧은 줄과 긴 줄을 교차해 리듬 평탄화 방지", emoji: "📊", example: "2음절 → 8음절 → 3음절 → 12음절" },
-  { id: "memory_loop", label: "메모리루프", desc: "마지막 훅이 첫 훅을 회수하는 폐쇄 루프", emoji: "♻", example: "첫 훅: 슬렁 슬렁 걸어 → 마지막: 슬렁 슬렁 걸어" },
-  { id: "metaphor", label: "비유/은유", desc: "상징과 은유로 가사에 깊이를 더함", emoji: "🌀", example: "잊혀진 비행기표처럼 가슴 속 구겨진 이름" },
-  { id: "emotion_cross", label: "감정교차", desc: "감정을 사물에 이입시켜 간접 표현", emoji: "🪞", example: "창틀 위 먼지가 나보다 오래 기억해 / 네 이름을" },
+  { id: "parallelism", label: "대구법", desc: "미러링/대립 구조로 긴장감과 리듬 생성", emoji: "⟷" },
+  { id: "internal_rhyme", label: "내부라임", desc: "줄 안에서 모음/자음 흐름을 연결", emoji: "🔗" },
+  { id: "show_dont_tell", label: "장면묘사", desc: "감정을 직접 말하지 않고 사물/행동으로 표현", emoji: "👁" },
+  { id: "rhythm_markers", label: "리듬마커", desc: "—, (), ~, 의성어로 호흡/끊김/에코 표현", emoji: "—" },
+  { id: "repetition_hook", label: "반복훅", desc: "핵심 구절을 의도적으로 반복해 기억에 남김", emoji: "🔁" },
+  { id: "object_motif", label: "소품모티프", desc: "2~3개 사물을 반복 사용하되 맥락을 변화", emoji: "🔑" },
+  { id: "punchline", label: "펀치라인", desc: "반전/임팩트가 있는 결정적 한 줄", emoji: "💥" },
+  { id: "ko_en_mix", label: "한영교차", desc: "한국어+영어를 교차 배치해 라임 강화", emoji: "🌐" },
+  { id: "bounce", label: "바운스", desc: "짧은 줄과 긴 줄을 교차해 리듬 평탄화 방지", emoji: "📊" },
+  { id: "memory_loop", label: "메모리루프", desc: "마지막 훅이 첫 훅을 회수하는 폐쇄 루프", emoji: "♻" },
+  { id: "metaphor", label: "비유/은유", desc: "상징과 은유로 가사에 깊이를 더함", emoji: "🌀" },
+  { id: "emotion_cross", label: "감정교차", desc: "감정을 사물에 이입시켜 간접 표현", emoji: "🪞" },
 ];
 
 // === 버튼 컴포넌트 ===
@@ -737,9 +737,6 @@ export default function LyricsSection({
                       }}>
                         <p style={{ fontSize: "11px", fontWeight: 700, marginBottom: "4px", color: "#f97316" }}>{tag.emoji} {tag.label}</p>
                         <p style={{ fontSize: "10px", color: "#a3a3a3", marginBottom: "8px", lineHeight: "1.5" }}>{tag.desc}</p>
-                        <p style={{ fontSize: "10px", color: "#d4d4d4", fontStyle: "italic", lineHeight: "1.5", borderTop: "1px solid #333", paddingTop: "8px" }}>
-                          예: {tag.example}
-                        </p>
                         <div style={{ position: "absolute", bottom: "-5px", left: "20px", transform: "rotate(45deg)", width: "10px", height: "10px", backgroundColor: "#0a0a0a" }} />
                       </div>
                     </div>
