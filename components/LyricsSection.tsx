@@ -317,7 +317,7 @@ export default function LyricsSection({
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
 
     parts.push(`=== 가사 구조 ===`);
-    parts.push(`가사 언어: ${langLabel}`);
+    parts.push(`가사 언어: ${langLabel} — 반드시 이 언어로만 가사를 작성. 다른 언어 사용 절대 금지 (KO+EN 믹스 선택 시에만 혼용 허용).`);
     parts.push(`송폼 구조: ${songFormLabels.join(" → ")}`);
     parts.push(`가사 밀도: ${selectedDensity.desc}`);
     parts.push(`감정 흐름: ${selectedArc.value}`);
