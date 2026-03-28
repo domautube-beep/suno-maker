@@ -9,8 +9,9 @@ interface OutputPanelProps {
   onModify: (request: string) => void;
   onBack: () => void;
   modifyHistory: { request: string; response: string }[];
-  // 직접 편집 완료 시 출력 업데이트
   onOutputEdit?: (field: "style" | "lyrics", newContent: string) => void;
+  onGenerateVariation?: () => void;
+  trackNumber?: number;
 }
 
 export default function OutputPanel({
@@ -20,6 +21,8 @@ export default function OutputPanel({
   modifyHistory,
   onOutputEdit,
   onModify,
+  onGenerateVariation,
+  trackNumber = 1,
 }: OutputPanelProps) {
   return (
     <div className="flex flex-col h-full">
@@ -63,6 +66,55 @@ export default function OutputPanel({
           content={output.lyrics}
           onEdit={(newContent) => onOutputEdit?.("lyrics", newContent)}
         />
+
+        {/* 비슷한 곡 더 만들기 배너 */}
+        {onGenerateVariation && (
+          <div
+            style={{
+              border: "2px solid #f97316",
+              borderRadius: "16px",
+              padding: "20px",
+              background: "linear-gradient(135deg, #fff7ed 0%, #ffffff 100%)",
+              marginTop: "8px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <div style={{
+                width: "40px", height: "40px", borderRadius: "12px",
+                backgroundColor: "#f97316", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>
+                  Track {trackNumber + 1} — 비슷한 곡 하나 더?
+                </p>
+                <p style={{ fontSize: "11px", color: "#737373" }}>
+                  같은 톤 & 무드, 다른 변주. 앨범처럼 이어지는 플레이리스트.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onGenerateVariation}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "12px",
+                backgroundColor: "#f97316",
+                color: "#fff",
+                fontSize: "13px",
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+              }}
+              className="hover:opacity-90 transition-all"
+            >
+              비슷한 느낌으로 다음 곡 생성하기 →
+            </button>
+          </div>
+        )}
 
         {/* 수정 히스토리 */}
         {modifyHistory.length > 0 && (

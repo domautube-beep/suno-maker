@@ -18,6 +18,7 @@ export default function Home() {
   const [generating, setGenerating] = useState(false);
   const [chatKey, setChatKey] = useState(0); // ChatFlow 강제 리마운트용
   const [showToast, setShowToast] = useState(false);
+  const [trackNumber, setTrackNumber] = useState(1);
   const [modifyHistory, setModifyHistory] = useState<
     { request: string; response: string }[]
   >([]);
@@ -147,6 +148,27 @@ export default function Home() {
     console.log(request);
   }, []);
 
+  // 변주 생성 — 같은 톤/무드, 다른 조합
+  const handleGenerateVariation = useCallback(() => {
+    const inputs = currentInputs as SunoInput;
+    if (!inputs.oneLiner && !inputs.genre) return;
+
+    // 트랙 넘버 증가
+    setTrackNumber((prev) => prev + 1);
+
+    // 같은 inputs로 재생성 (templateEngine이 랜덤 조합하므로 다른 결과)
+    const { output: newOutput, forensicLog: newLog } = generateDemo(inputs);
+    setOutput(newOutput);
+    setForensicLog(newLog + `\n\n[Track ${trackNumber + 1} — 변주 생성]`);
+    setModifyHistory([]);
+
+    // 프리뷰도 갱신
+    const sections = generatePreview(currentInputs);
+    setPreviewSections(sections);
+
+    flashToastRef.current();
+  }, [currentInputs, trackNumber]);
+
   // 리셋
   const handleReset = useCallback(() => {
     setPhase("chat");
@@ -157,7 +179,8 @@ export default function Home() {
     setModifyHistory([]);
     setGenerating(false);
     setIdentityOverride(null);
-    setChatKey((prev) => prev + 1); // ChatFlow 강제 리마운트
+    setTrackNumber(1);
+    setChatKey((prev) => prev + 1);
   }, []);
 
   return (
@@ -232,6 +255,8 @@ export default function Home() {
                     prev ? { ...prev, [field]: newContent } : prev
                   );
                 }}
+                onGenerateVariation={handleGenerateVariation}
+                trackNumber={trackNumber}
               />
             </div>
             <div className="w-[400px] flex-shrink-0 hidden lg:flex flex-col overflow-hidden border-l border-border">
