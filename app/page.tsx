@@ -118,13 +118,41 @@ export default function Home() {
   }, []);
 
   // Phase 1 완료 — chat에서 style로 전환
+  // 빈 값을 AI 추론값으로 채워서 프리뷰에 전부 표시
   const handleChatComplete = useCallback((inputs: SunoInput) => {
     console.log("=== R3ALAUDE 입력 ===");
     console.log(JSON.stringify(inputs, null, 2));
 
-    const { output: demoOutput, forensicLog: log } = generateDemo(inputs);
+    // AI 추론값으로 빈 필드 채우기 (genrePresets 기반 + 랜덤)
+    const { getGenrePreset } = require("@/lib/genrePresets");
+    const preset = inputs.genre ? getGenrePreset(inputs.genre) : null;
+
+    const randomPick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+    const filled: SunoInput = {
+      ...inputs,
+      genre: inputs.genre || randomPick(["Pop", "R&B", "Hip-Hop", "Lo-Fi", "Rock", "EDM", "Ballad"]),
+      instruments: inputs.instruments || "",
+      vibe: inputs.vibe || randomPick(["감성적, 몽환적", "어두운, 중독적", "밝은, 에너지틱", "따뜻한, 편안한"]),
+      tempo: inputs.tempo || (preset?.tempo || randomPick(["slow", "mid_slow", "mid", "mid_fast", "fast"])),
+      timeSignature: inputs.timeSignature || (preset?.timeSignature || "4/4"),
+      era: inputs.era || (preset?.era || randomPick(["80s", "90s", "2000s", "2010s", "2020s"])),
+      texture: inputs.texture || (preset?.texture || randomPick(["lofi_warm", "clean_digital", "analog_vintage", "dreamy"])),
+      vocal: inputs.vocal || "",
+      reverb: inputs.reverb || (preset?.reverb || randomPick(["dry", "room", "hall", "plate"])),
+      language: inputs.language || "ko",
+    };
+
+    setCurrentInputs(filled);
+
+    const { output: demoOutput, forensicLog: log } = generateDemo(filled);
     setOutput(demoOutput);
     setForensicLog(log);
+
+    // 프리뷰도 채워진 값으로 생성
+    const sections = generatePreview(filled);
+    setPreviewSections(sections);
+
     setPhase("style");
   }, []);
 
