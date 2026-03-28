@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Vercel 함수 타임아웃 60초로 확장
+export const maxDuration = 60;
+
 // Style of Music + 프로듀서 분석 노트 AI 생성
 export async function POST(req: NextRequest) {
   const { inputs, apiKey, provider } = await req.json();

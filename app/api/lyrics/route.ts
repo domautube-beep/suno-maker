@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 // 3개 provider 대응 가사 생성 API
 export async function POST(req: NextRequest) {
   const { prompt, apiKey, provider } = await req.json();
