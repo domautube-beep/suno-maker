@@ -123,23 +123,75 @@ export default function Home() {
     console.log("=== R3ALAUDE 입력 ===");
     console.log(JSON.stringify(inputs, null, 2));
 
-    // AI 추론값으로 빈 필드 채우기 (genrePresets 기반 + 랜덤)
+    // AI 추론값 — 사용자가 선택한 값에 맞게 연관성 있는 값으로 채우기
     const { getGenrePreset } = require("@/lib/genrePresets");
     const preset = inputs.genre ? getGenrePreset(inputs.genre) : null;
-
     const randomPick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+    // 느낌 키워드에서 분위기 방향 추론
+    const vibe = inputs.vibe || "";
+    const isDark = ["어두운", "우울한", "긴장감", "거친"].some((k) => vibe.includes(k));
+    const isBright = ["밝은", "에너지틱", "유쾌한", "희망적"].some((k) => vibe.includes(k));
+    const isSexy = ["섹시한", "그루비"].some((k) => vibe.includes(k));
+    const isEpic = ["웅장한", "긴장감"].some((k) => vibe.includes(k));
+    const isFuturistic = ["미래적", "디지털", "차가운"].some((k) => vibe.includes(k));
+    const isIntimate = ["친밀한", "편안한", "따뜻한"].some((k) => vibe.includes(k));
+    const isRetro = ["레트로", "아날로그"].some((k) => vibe.includes(k));
+    const isChill = ["나른한", "몽환적", "편안한"].some((k) => vibe.includes(k));
+
+    // 느낌 기반 장르 추론
+    const genreByVibe = isSexy ? randomPick(["R&B", "Neo Soul", "Deep House"])
+      : isEpic ? randomPick(["Cinematic", "Orchestral", "EDM"])
+      : isFuturistic ? randomPick(["Techno", "Synthwave", "Future Bass", "Hyperpop"])
+      : isDark ? randomPick(["Hip-Hop", "Trap", "Ambient", "Techno"])
+      : isBright ? randomPick(["K-Pop", "Pop", "Dance Pop", "EDM"])
+      : isChill ? randomPick(["Lo-Fi", "Bossa Nova", "Ambient", "Jazz"])
+      : isRetro ? randomPick(["Synthwave", "City Pop", "Disco"])
+      : randomPick(["Pop", "R&B", "Lo-Fi"]);
+
+    // 느낌 기반 템포 추론
+    const tempoByVibe = isSexy ? randomPick(["mid_slow", "mid"])
+      : isEpic ? randomPick(["slow", "mid"])
+      : isFuturistic ? randomPick(["mid_fast", "fast"])
+      : isDark ? randomPick(["mid_slow", "mid"])
+      : isBright ? randomPick(["mid_fast", "fast"])
+      : isChill ? randomPick(["slow", "mid_slow"])
+      : "mid";
+
+    // 느낌 기반 시대 추론
+    const eraByVibe = isFuturistic ? randomPick(["2020s", "futuristic"])
+      : isRetro ? randomPick(["80s", "90s", "vintage"])
+      : isSexy ? randomPick(["2010s", "2020s"])
+      : isEpic ? randomPick(["2020s", "2010s"])
+      : randomPick(["2010s", "2020s"]);
+
+    // 느낌 기반 텍스처 추론
+    const textureByVibe = isSexy ? randomPick(["analog_vintage", "clean_digital"])
+      : isEpic ? randomPick(["spacious", "dense"])
+      : isFuturistic ? randomPick(["clean_digital", "spacious"])
+      : isDark ? randomPick(["raw_gritty", "dense"])
+      : isChill ? randomPick(["lofi_warm", "dreamy"])
+      : isIntimate ? randomPick(["lofi_warm", "analog_vintage", "minimal"])
+      : "clean_digital";
+
+    // 느낌 기반 리버브 추론
+    const reverbByVibe = isEpic ? randomPick(["hall", "cathedral"])
+      : isIntimate ? randomPick(["dry", "room"])
+      : isFuturistic ? randomPick(["hall", "plate"])
+      : isChill ? randomPick(["room", "plate"])
+      : "room";
 
     const filled: SunoInput = {
       ...inputs,
-      genre: inputs.genre || randomPick(["Pop", "R&B", "Hip-Hop", "Lo-Fi", "Rock", "EDM", "Ballad"]),
+      genre: inputs.genre || (preset ? inputs.genre : genreByVibe),
       instruments: inputs.instruments || "",
-      vibe: inputs.vibe || randomPick(["감성적, 몽환적", "어두운, 중독적", "밝은, 에너지틱", "따뜻한, 편안한"]),
-      tempo: inputs.tempo || (preset?.tempo || randomPick(["slow", "mid_slow", "mid", "mid_fast", "fast"])),
+      vibe: inputs.vibe || "",
+      tempo: inputs.tempo || (preset?.tempo || tempoByVibe),
       timeSignature: inputs.timeSignature || (preset?.timeSignature || "4/4"),
-      era: inputs.era || (preset?.era || randomPick(["80s", "90s", "2000s", "2010s", "2020s"])),
-      texture: inputs.texture || (preset?.texture || randomPick(["lofi_warm", "clean_digital", "analog_vintage", "dreamy"])),
+      era: inputs.era || (preset?.era || eraByVibe),
+      texture: inputs.texture || (preset?.texture || textureByVibe),
       vocal: inputs.vocal || "",
-      reverb: inputs.reverb || (preset?.reverb || randomPick(["dry", "room", "hall", "plate"])),
+      reverb: inputs.reverb || (preset?.reverb || reverbByVibe),
       language: inputs.language || "ko",
     };
 
