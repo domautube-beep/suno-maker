@@ -11,11 +11,8 @@ interface LyricsSectionProps {
   currentSettings?: Record<string, string>;
   apiKey: string;
   provider: Provider;
-  onLanguageChange?: (lang: string) => void;
   onLyricsUpdate?: (lyrics: string) => void;
   onRegenerateStyle?: () => Promise<void>;
-  onGenerateVariation?: () => void;
-  trackNumber?: number;
 }
 
 // === 송폼 블록 ===

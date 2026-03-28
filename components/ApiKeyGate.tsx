@@ -68,10 +68,20 @@ export default function ApiKeyGate({ onKeySubmit }: ApiKeyGateProps) {
       }}>
         {/* 로고 */}
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "24px", fontWeight: 800, color: "#0a0a0a", letterSpacing: "-0.5px" }}>
-            R3ALAUDE
-          </h1>
-          <p style={{ fontSize: "12px", color: "#a3a3a3", marginTop: "4px" }}>
+          <div style={{
+            backgroundColor: "#1a1a1a", borderRadius: "16px", padding: "24px 32px",
+            marginBottom: "12px", display: "inline-block",
+          }}>
+            <h1 style={{
+              fontSize: "32px", fontWeight: 900, letterSpacing: "4px",
+              color: "#d4a574", fontFamily: "monospace",
+              textShadow: "0 0 10px rgba(212,165,116,0.3)",
+              margin: 0,
+            }}>
+              R3AL AUDE
+            </h1>
+          </div>
+          <p style={{ fontSize: "12px", color: "#a3a3a3", marginTop: "8px" }}>
             Suno v5.5 프롬프트 & 가사 생성기
           </p>
         </div>

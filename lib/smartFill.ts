@@ -144,7 +144,6 @@ export function smartFill(inputs: SunoInput): SunoInput {
     timeSignature: inputs.timeSignature || preset?.timeSignature || genreDefaults.timeSignature as string || "4/4",
     era: inputs.era || preset?.era || genreDefaults.era as string || vibeInferred.era as string || "2020s",
     texture: inputs.texture || preset?.texture || genreDefaults.texture as string || vibeInferred.texture as string || "clean_digital",
-    vocal: inputs.vocal || "",
     reverb: inputs.reverb || preset?.reverb || genreDefaults.reverb as string || vibeInferred.reverb as string || "room",
     language: inputs.language || "ko",
   };

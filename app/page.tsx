@@ -32,12 +32,9 @@ export default function Home() {
   const [generating, setGenerating] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
-  const [trackNumber, setTrackNumber] = useState(1);
 
   const flashToastRef = useRef<() => void>(() => {});
   const [identityOverride, setIdentityOverride] = useState<string | null>(null);
-  // 이전 입력 추적 — 언어만 바뀌었는지 판별용
-  const prevInputsRef = useRef<Partial<SunoInput>>({});
 
   const handleInputChange = useCallback((inputs: Partial<SunoInput>) => {
     setCurrentInputs(inputs);
@@ -198,12 +195,6 @@ export default function Home() {
     generateStyle(currentInputs as Record<string, string>);
   }, [currentInputs, generateStyle]);
 
-  // 변주 생성 (스타일 새로 생성)
-  const handleGenerateVariation = useCallback(() => {
-    setTrackNumber((prev) => prev + 1);
-    generateStyle(currentInputs as Record<string, string>);
-  }, [currentInputs, generateStyle]);
-
   // 리셋
   const handleReset = useCallback(() => {
     setPhase("chat");
@@ -213,7 +204,6 @@ export default function Home() {
     setForensicLog("");
     setGenerating(false);
     setIdentityOverride(null);
-    setTrackNumber(1);
     setChatKey((prev) => prev + 1);
   }, []);
 
@@ -368,10 +358,7 @@ export default function Home() {
                   apiKey={apiKey}
                   provider={provider}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
-                  onLanguageChange={(lang) => setCurrentInputs((prev) => ({ ...prev, language: lang }))}
                   onRegenerateStyle={() => { return generateStyle(currentInputs as Record<string, string>); }}
-                  onGenerateVariation={handleGenerateVariation}
-                  trackNumber={trackNumber}
                 />
                   </>
                 )}

@@ -305,23 +305,37 @@ export const GENRE_PRESETS: Record<string, GenrePreset> = {
 // 장르 value에서 프리셋 찾기
 // - steps.ts의 genre value(소문자)와 일치하면 바로 반환
 // - 복수 선택("kpop+pop" 형태) 시 첫 번째 기준으로 적용
+// 표시명 → 내부 키 매핑
+const DISPLAY_TO_KEY: Record<string, string> = {
+  "K-Pop": "kpop", "Pop": "pop", "Dance Pop": "pop", "City Pop": "citypop",
+  "Disco / Funk": "disco", "R&B": "rnb", "R&B / Soul": "rnb", "Neo Soul": "neosoul",
+  "Gospel": "gospel", "Hip-Hop": "hiphop", "Trap": "trap", "Boom Bap": "boombap",
+  "Gangsta Rap": "hiphop", "Ballad": "ballad", "Lo-Fi": "lofi", "Acoustic": "acoustic",
+  "Folk": "folk", "Rock": "rock", "Alt / Indie": "indie", "Punk": "punk", "Metal": "metal",
+  "EDM / Dance": "edm", "House": "house", "Deep House": "deephouse",
+  "Afro House": "afrohouse", "Melodic House": "melodichouse", "UK Garage": "ukgarage",
+  "Techno": "techno", "Synthwave": "synthwave", "Ambient": "ambient",
+  "Cinematic": "cinematic", "Classical": "classical", "Orchestral": "orchestral",
+  "Jazz": "jazz", "Blues": "blues", "Reggae": "reggae", "Latin": "latin",
+  "Trot": "trot", "Bossa Nova": "bossanova",
+};
+
 export function getGenrePreset(genreInput: string): GenrePreset | null {
   if (!genreInput) return null;
 
-  // 복수 선택 → 첫 번째 장르 기준
-  const firstGenre = genreInput.split("+")[0].trim().toLowerCase();
+  const firstGenre = genreInput.split("+")[0].trim();
 
-  // 정확 매칭 (steps.ts value 기준 소문자)
-  if (GENRE_PRESETS[firstGenre]) return GENRE_PRESETS[firstGenre];
+  // 1. 소문자 정확 매칭
+  if (GENRE_PRESETS[firstGenre.toLowerCase()]) return GENRE_PRESETS[firstGenre.toLowerCase()];
 
-  // 부분 매칭 (방어적 처리)
+  // 2. 표시명 → 내부 키 변환
+  const mapped = DISPLAY_TO_KEY[firstGenre];
+  if (mapped && GENRE_PRESETS[mapped]) return GENRE_PRESETS[mapped];
+
+  // 3. 부분 매칭 (최후 수단)
+  const lower = firstGenre.toLowerCase();
   for (const [key, preset] of Object.entries(GENRE_PRESETS)) {
-    if (
-      firstGenre.includes(key.toLowerCase()) ||
-      key.toLowerCase().includes(firstGenre)
-    ) {
-      return preset;
-    }
+    if (lower.includes(key) || key.includes(lower)) return preset;
   }
 
   return null;

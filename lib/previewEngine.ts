@@ -178,6 +178,11 @@ const VIBE_MAP: Record<string, { en: string; ko: string }> = {
   "실험적": { en: "experimental structure, unconventional sounds, boundary-pushing", ko: "실험적 구조, 비관습적 사운드" },
   "미니멀": { en: "minimal arrangement, sparse elements, space as instrument", ko: "미니멀 편곡, 공간을 악기처럼 사용" },
   "복잡한": { en: "complex arrangement, layered textures, dense instrumentation", ko: "복잡한 편곡, 겹겹이 쌓인 질감" },
+  "신비로운": { en: "mysterious atmosphere, enigmatic harmonies, otherworldly textures", ko: "신비로운 분위기, 비밀스러운 화성" },
+  "격렬한": { en: "intense aggressive energy, maximum attack, relentless drive", ko: "격렬한 에너지, 최대 공격성, 끊임없는 추진" },
+  "그루비": { en: "deep groove, funky rhythm, body-moving pocket", ko: "딥 그루브, 펑키한 리듬, 몸이 움직이는 리듬" },
+  "서정적": { en: "lyrical emotional flow, poetic melodic movement, reflective beauty", ko: "서정적 감성 흐름, 시적인 멜로디" },
+  "몰입감": { en: "immersive depth, enveloping soundscape, total absorption", ko: "몰입적 깊이, 감싸는 사운드스케이프" },
 };
 
 // 입력 → 실시간 프리뷰 생성
