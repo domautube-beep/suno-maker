@@ -633,23 +633,54 @@ export default function LyricsSection({
         {/* 생성 결과 */}
         {!generating && tracks.length > 0 && (
           <div>
-            {/* 트랙 탭 */}
+            {/* 트랙 네비게이션 */}
             {tracks.length > 1 && (
-              <div style={{ display: "flex", gap: "4px", marginBottom: "12px", overflowX: "auto", paddingBottom: "4px" }}>
-                {tracks.map((track, idx) => (
-                  <button key={track.id} onClick={() => {
-                    setActiveTrack(idx);
-                    setGeneratedLyrics(track.lyrics);
-                  }} style={{
-                    padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
-                    backgroundColor: activeTrack === idx ? "#0a0a0a" : "#fff",
-                    color: activeTrack === idx ? "#fff" : "#737373",
-                    border: activeTrack === idx ? "1px solid #0a0a0a" : "1px solid #d4d4d4",
-                    cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
-                  }}>
-                    Track {track.id}
-                  </button>
-                ))}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                {/* ← 이전 */}
+                <button onClick={() => {
+                  const prev = Math.max(0, activeTrack - 1);
+                  setActiveTrack(prev);
+                  setGeneratedLyrics(tracks[prev].lyrics);
+                }} disabled={activeTrack === 0} style={{
+                  width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #e5e5e5",
+                  backgroundColor: activeTrack === 0 ? "#fafafa" : "#fff",
+                  color: activeTrack === 0 ? "#d4d4d4" : "#0a0a0a",
+                  cursor: activeTrack === 0 ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  fontSize: "14px", fontWeight: 700,
+                }}>←</button>
+
+                {/* 트랙 탭들 */}
+                <div style={{ display: "flex", gap: "4px", overflowX: "auto", flex: 1, paddingBottom: "2px" }}>
+                  {tracks.map((track, idx) => (
+                    <button key={track.id} onClick={() => {
+                      setActiveTrack(idx);
+                      setGeneratedLyrics(track.lyrics);
+                    }} style={{
+                      padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                      backgroundColor: activeTrack === idx ? "#0a0a0a" : "#fff",
+                      color: activeTrack === idx ? "#fff" : "#737373",
+                      border: activeTrack === idx ? "1px solid #0a0a0a" : "1px solid #d4d4d4",
+                      cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                    }}>
+                      Track {track.id}
+                    </button>
+                  ))}
+                </div>
+
+                {/* → 다음 */}
+                <button onClick={() => {
+                  const next = Math.min(tracks.length - 1, activeTrack + 1);
+                  setActiveTrack(next);
+                  setGeneratedLyrics(tracks[next].lyrics);
+                }} disabled={activeTrack === tracks.length - 1} style={{
+                  width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #e5e5e5",
+                  backgroundColor: activeTrack === tracks.length - 1 ? "#fafafa" : "#fff",
+                  color: activeTrack === tracks.length - 1 ? "#d4d4d4" : "#0a0a0a",
+                  cursor: activeTrack === tracks.length - 1 ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  fontSize: "14px", fontWeight: 700,
+                }}>→</button>
               </div>
             )}
 
