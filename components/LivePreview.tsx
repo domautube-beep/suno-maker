@@ -90,39 +90,47 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
     ],
   },
 
-  // 텍스처 (질감)
+  // 텍스처 (질감) — 대분류+소분류
   "texture-step": {
     singleSelect: true,
     categories: [
-      { label: "질감", options: [
+      { label: "온도감", options: [
         { label: "Lo-Fi 따뜻함", value: "lofi_warm" },
         { label: "깔끔한 디지털", value: "clean_digital" },
         { label: "아날로그 빈티지", value: "analog_vintage" },
+      ]},
+      { label: "밀도", options: [
+        { label: "미니멀", value: "minimal" },
+        { label: "풍성한 레이어", value: "dense" },
+      ]},
+      { label: "표면감", options: [
         { label: "거친 질감", value: "raw_gritty" },
         { label: "몽환적", value: "dreamy" },
         { label: "넓은 공간감", value: "spacious" },
-        { label: "풍성한 레이어", value: "dense" },
-        { label: "미니멀", value: "minimal" },
       ]},
     ],
   },
 
-  // 리버브
+  // 리버브 — 대분류+소분류
   reverb: {
     singleSelect: true,
     categories: [
-      { label: "리버브", options: [
+      { label: "가까운", options: [
         { label: "Dry (가까운)", value: "dry" },
         { label: "Room", value: "room" },
+      ]},
+      { label: "넓은", options: [
         { label: "Hall (넓은 홀)", value: "hall" },
         { label: "Cathedral (대성당)", value: "cathedral" },
+      ]},
+      { label: "캐릭터", options: [
         { label: "Lo-Fi 필터", value: "lofi_filter" },
         { label: "Plate (스튜디오)", value: "plate" },
       ]},
     ],
   },
 
-  // 느낌/분위기 (vibe) — 멀티셀렉트
+  // 느낌/분위기 (vibe) — 멀티셀렉트 대분류+소분류
   texture: {
     categories: [
       { label: "분위기", multiSelect: true, options: [
@@ -131,18 +139,34 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
         { label: "밝은", value: "밝은" },
         { label: "감성적", value: "감성적" },
         { label: "긴장감", value: "긴장감" },
+        { label: "우울한", value: "우울한" },
+        { label: "희망적", value: "희망적" },
+        { label: "신비로운", value: "신비로운" },
       ]},
       { label: "에너지", multiSelect: true, options: [
         { label: "에너지틱", value: "에너지틱" },
         { label: "편안한", value: "편안한" },
         { label: "웅장한", value: "웅장한" },
         { label: "미니멀", value: "미니멀" },
+        { label: "폭발적", value: "폭발적" },
+        { label: "나른한", value: "나른한" },
+        { label: "격렬한", value: "격렬한" },
       ]},
       { label: "질감", multiSelect: true, options: [
         { label: "따뜻한", value: "따뜻한" },
         { label: "차가운", value: "차가운" },
         { label: "거친", value: "거친" },
         { label: "레트로", value: "레트로" },
+        { label: "매끈한", value: "매끈한" },
+        { label: "아날로그", value: "아날로그" },
+      ]},
+      { label: "특성", multiSelect: true, options: [
+        { label: "중독적", value: "중독적" },
+        { label: "세련된", value: "세련된" },
+        { label: "실험적", value: "실험적" },
+        { label: "그루비", value: "그루비" },
+        { label: "서정적", value: "서정적" },
+        { label: "몰입감", value: "몰입감" },
       ]},
     ],
   },
