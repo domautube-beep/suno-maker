@@ -3,6 +3,7 @@
 
 import { SunoInput, SunoOutput } from "./types";
 import { getGenrePreset } from "./genrePresets";
+import { generateStyle } from "./templateEngine";
 
 // 핵심 문장 + 느낌 → 곡 전체 감정 요약 (영문, Style 끝에 추가)
 function buildEmotionSummary(oneLiner: string, vibe: string, genre: string): string {
@@ -149,60 +150,9 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
   // 기본 베이스 스타일 (장르 프리셋이 없을 때 사용)
   const baseStyle = `Mid-tempo groove anchored at 88 BPM with a laid-back 1/16 swing pocket. Warm analog synth pads provide the harmonic bed while a muted electric guitar delivers sparse melodic fragments in the verse. 808 sub bass locks with a crisp rimshot pattern, creating a hypnotic low-end groove. Hi-hats maintain subtle syncopation with ghost notes adding organic texture. Lo-fi piano chords emerge in the pre-hook, layering warmth into the mid-range. The chorus opens with full drum programming, layered synth stacks, and ambient pad swells that widen the stereo field dramatically. Bridge strips to solo piano with atmospheric reverb tails. Final chorus adds harmonic instrument layers and rhythmic variation for climactic density.`;
 
-  // Style of Music 조합 — 프리셋 기반 + 모든 사용자 설정 반영
-  let style: string;
-
-  // 1단계: 기본 스타일 선택
-  if (preset) {
-    style = preset.style;
-  } else {
-    const genrePrefix = genreEnglish ? `${genreEnglish}, ` : "";
-    style = genrePrefix + baseStyle;
-  }
-
-  // 2단계: BPM 교체
-  if (tempo && bpmMap[tempo]) {
-    style = style.replace(/\d+ BPM/i, bpmMap[tempo]);
-  }
-
-  // 3단계: 박자 교체
-  if (timeSignature && timeSignature !== "4/4") {
-    // 기존 4/4 교체
-    style = style.replace(/4\/4/g, timeSignature);
-    // 박자 관련 설명 없으면 추가
-    if (!style.includes(timeSignature)) {
-      style += ` ${timeSignature} time signature feel.`;
-    }
-  }
-
-  // 4단계: 악기 반영 — 사용자가 선택한 악기를 Style에 삽입
-  if (inputs.instruments) {
-    style += ` Instrumentation: ${inputs.instruments}.`;
-  }
-
-  // 5단계: 시대 반영
-  if (era && eraStyleMap[era] && (!preset || preset.era !== era)) {
-    style += ` ${eraStyleMap[era]}`;
-  }
-
-  // 6단계: 텍스처 반영
-  if (texture) {
-    // textureStyleMap에 있으면 사용, 없으면 직접 삽입
-    if (textureStyleMap[texture]) {
-      style += ` ${textureStyleMap[texture]}`;
-    } else {
-      // 사용자 직접 입력 (한글 포함 가능) → 영문 변환 시도
-      style += ` Production texture: ${texture}.`;
-    }
-  }
-
-  // 7단계: 곡 전체 감정 요약 추가 (핵심 문장 + 느낌 기반)
-  const emotionSummary = buildEmotionSummary(oneLiner, vibe, genre);
-  if (emotionSummary) {
-    style += ` ${emotionSummary}`;
-  }
-
-  // 900자 초과해도 전체 출력 (사용자가 직접 편집 가능)
+  // ===== Style of Music 생성 — 템플릿 엔진 사용 =====
+  // (나중에 Claude API로 교체할 때 이 한 줄만 바꾸면 됨)
+  const style = generateStyle(inputs);
 
   // =============================================
   // Lyrics — VOCAL PROFILE + 섹션별 가사

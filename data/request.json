@@ -1,0 +1,71 @@
+{
+  "inputs": {
+    "oneLiner": "꿈은 녹지않아",
+    "vibe": "몽환적, 감성적, 쓸쓸한, 레트로, 서정적, 웅장한",
+    "genre": "Techno",
+    "tempo": "mid_fast",
+    "timeSignature": "5/4",
+    "era": "2020s",
+    "texture": "lofi_warm",
+    "vocal": "male, low baritone, deep chest resonance | airy breathy, whisper-close, soft presence | rap flow, rhythmic speech, sharp articulation, punchline delivery | outdoor ambience, open air, natural echo",
+    "reverb": "dry",
+    "language": "mixed"
+  },
+  "previewSections": [
+    {
+      "id": "identity",
+      "label": "IDENTITY",
+      "english": "\"꿈은 녹지않아\"",
+      "korean": "이 문장에서 리듬, 악기, 질감을 추론합니다"
+    },
+    {
+      "id": "era",
+      "label": "ERA",
+      "english": "hyperpop elements, trendy mixing, genre-fluid",
+      "korean": "2020년대 시대 사운드 특성"
+    },
+    {
+      "id": "texture-step",
+      "label": "TEXTURE",
+      "english": "tape saturation, vinyl crackle, warm compression",
+      "korean": "Lo-Fi 따뜻함 프로덕션 질감"
+    },
+    {
+      "id": "texture",
+      "label": "TEXTURE & MOOD",
+      "english": "dreamy pads, wide reverb, ethereal atmosphere, floating feel, emotional dynamics, intimate space, gentle swells, epic orchestral swells, massive reverb, cinematic scale, vintage tape warmth, analog hiss, retro drum machine, 80s synth character",
+      "korean": "몽환적 패드, 넓은 리버브, 공중에 뜨는 느낌, 감정적 다이내믹, 친밀한 공간감, 부드러운 볼륨 변화, 웅장한 오케스트라 스웰, 대형 리버브, 시네마틱 스케일, 빈티지 테이프 따뜻함, 아날로그 히스, 레트로 드럼머신"
+    },
+    {
+      "id": "reverb",
+      "label": "REVERB",
+      "english": "close-mic, intimate distance, minimal reverb",
+      "korean": "Dry (가까운 공간) 공간감 설정"
+    },
+    {
+      "id": "vocal",
+      "label": "VOCAL PROFILE",
+      "english": "male, low baritone, deep chest resonance | airy breathy, whisper-close, soft presence | rap flow, rhythmic speech, sharp articulation, punchline delivery | outdoor ambience, open air, natural echo",
+      "korean": "보컬 타입, 음색, 딜리버리, 공간감 설정"
+    },
+    {
+      "id": "lyrics-config",
+      "label": "LYRICS CONFIG",
+      "english": "Korean + English mixed lyrics, bilingual hook design",
+      "korean": "한국어 + 영어 믹스, 이중언어 훅 설계"
+    },
+    {
+      "id": "structure",
+      "label": "SONG FORM",
+      "english": "Verse 1 → Hook → Chorus → Verse 2 → Bridge → Hook → Chorus → Outro",
+      "korean": "벌스1 → 훅 → 코러스 → 벌스2 → 브릿지 → 훅 → 코러스 → 아웃트로"
+    },
+    {
+      "id": "engine",
+      "label": "AUTO-HOOK ENGINE",
+      "english": "Repetition Mandate + Antithesis + Internal Rhyme + Memory Loop",
+      "korean": "반복 앵커 + 대립 구조 + 내부 라임 체인 + 기억 루프 자동 적용"
+    }
+  ],
+  "timestamp": "2026-03-28T04:52:26.469Z"
+}
