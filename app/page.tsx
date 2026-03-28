@@ -321,8 +321,8 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* 생성 완료 시 표시 */}
-                {!generating && output && output.style && (
+                {/* 생성 완료 또는 진행 중에도 표시 (LyricsSection 언마운트 방지) */}
+                {output && (output.style || generating) && (
                   <>
                 {/* 프로듀서 분석 노트 */}
                 {forensicLog && (
@@ -359,7 +359,7 @@ export default function Home() {
                   provider={provider}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
                   onLanguageChange={(lang) => setCurrentInputs((prev) => ({ ...prev, language: lang }))}
-                  onRegenerateStyle={() => generateStyle(currentInputs as Record<string, string>)}
+                  onRegenerateStyle={() => { return generateStyle(currentInputs as Record<string, string>); }}
                   onGenerateVariation={handleGenerateVariation}
                   trackNumber={trackNumber}
                 />
