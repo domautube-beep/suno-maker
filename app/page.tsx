@@ -256,8 +256,20 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* 생성 실패 시 */}
+                {!generating && (!output || !output.style) && forensicLog && (
+                  <div style={{ padding: "20px", backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: "16px" }}>
+                    <h3 style={{ fontSize: "13px", fontWeight: 700, color: "#dc2626", marginBottom: "8px" }}>Style 생성 실패</h3>
+                    <p style={{ fontSize: "12px", color: "#525252", lineHeight: "1.6", marginBottom: "12px" }}>{forensicLog}</p>
+                    <button onClick={handleRegenerateStyle} style={{
+                      padding: "10px 20px", borderRadius: "10px", backgroundColor: "#f97316",
+                      color: "#fff", fontSize: "13px", fontWeight: 600, border: "none", cursor: "pointer",
+                    }}>다시 생성하기</button>
+                  </div>
+                )}
+
                 {/* 생성 완료 시 표시 */}
-                {!generating && output && (
+                {!generating && output && output.style && (
                   <>
                 {/* 프로듀서 분석 노트 */}
                 {forensicLog && (
