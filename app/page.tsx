@@ -66,22 +66,62 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentInputs, phase]);
 
-  // AI로 Style of Music 생성
+  // AI로 Style of Music 생성 (스트리밍)
+  const [streamingText, setStreamingText] = useState("");
+
   const generateStyle = useCallback(async (inputs: Record<string, string>) => {
     setGenerating(true);
+    setStreamingText("");
+    setForensicLog("");
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetch("/api/generate-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inputs, apiKey, provider }),
       });
-      const data = await res.json();
-      if (data.style) {
-        setOutput((prev) => prev ? { ...prev, style: data.style } : { style: data.style, lyrics: "" });
-        setForensicLog(data.forensicLog || "");
-      } else if (data.error) {
-        setForensicLog(`[에러] ${data.error}`);
+
+      if (!res.ok) {
+        const err = await res.json();
+        setForensicLog(`[에러] ${err.error || "API 실패"}`);
+        setGenerating(false);
+        return;
       }
+
+      const reader = res.body?.getReader();
+      if (!reader) { setForensicLog("[에러] 스트림 없음"); setGenerating(false); return; }
+
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.text) {
+                fullText += parsed.text;
+                setStreamingText(fullText);
+              }
+            } catch { /* 무시 */ }
+          }
+        }
+      }
+
+      // ---STYLE--- / ---NOTES--- 파싱
+      const styleMatch = fullText.match(/---STYLE---\n?([\s\S]*?)(?:---NOTES---|$)/);
+      const notesMatch = fullText.match(/---NOTES---\n?([\s\S]*?)$/);
+      const style = styleMatch ? styleMatch[1].trim() : fullText;
+      const notes = notesMatch ? notesMatch[1].trim() : "";
+
+      setOutput((prev) => prev ? { ...prev, style } : { style, lyrics: "" });
+      setForensicLog(notes);
+      setStreamingText("");
     } catch {
       setForensicLog("[에러] API 호출 실패");
     }
@@ -246,15 +286,26 @@ export default function Home() {
                   처음부터 다시
                 </button>
 
-                {/* 스타일 생성 중 로딩 */}
+                {/* 스타일 생성 중 — 스트리밍 표시 */}
                 {generating && (
-                  <div style={{ textAlign: "center", padding: "60px 0" }}>
-                    <svg className="animate-spin" style={{ margin: "0 auto 16px" }} width="32" height="32" viewBox="0 0 24 24">
-                      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
-                      <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>Style of Music 생성 중...</p>
-                    <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "4px" }}>AI가 설정을 분석하고 스타일 프롬프트를 작성하고 있습니다</p>
+                  <div style={{ padding: "16px", backgroundColor: "#0a0a0a", borderRadius: "16px", position: "relative" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f97316", animation: "pulse-dot 1.5s ease-in-out infinite" }} />
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#a3a3a3" }}>생성 중...</span>
+                    </div>
+                    {streamingText ? (
+                      <pre style={{
+                        fontSize: "11px", color: "#d4d4d4", fontFamily: "monospace",
+                        whiteSpace: "pre-wrap", lineHeight: "1.6",
+                        maxHeight: "300px", overflowY: "auto",
+                      }}>{streamingText}<span style={{ animation: "blink 1s infinite" }}>▊</span></pre>
+                    ) : (
+                      <p style={{ fontSize: "11px", color: "#525252" }}>AI가 설정을 분석하고 있습니다...</p>
+                    )}
+                    <style>{`
+                      @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+                      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+                    `}</style>
                   </div>
                 )}
 
