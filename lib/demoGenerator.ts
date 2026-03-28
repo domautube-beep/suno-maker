@@ -56,7 +56,7 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
     era ? `시대: ${era}` : "",
     texture ? `질감: ${texture}` : "",
     reverb ? `리버브: ${reverb}` : "",
-    `언어: ${language === "ko" ? "한국어" : language === "en" ? "English" : "한국어+English"}`,
+    `언어: ${language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어+English"}`,
     ``,
     `[Forensic Translation]`,
     `"${oneLiner}" 분석:`,
@@ -158,6 +158,7 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
   // Lyrics — VOCAL PROFILE + 섹션별 가사
   // =============================================
   const isKo = language === "ko" || language === "mixed";
+  const isJa = language === "ja";
 
   // reverb 입력값에 따른 REVERB 필드 값 결정
   const reverbProfileMap: Record<string, string> = {
@@ -202,7 +203,55 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
     `[Evolution: close whisper verse → open supported chorus → exposed vulnerable bridge → layered final chorus with doubles]`,
   ].join("\n");
 
-  const lyricsBody = isKo ? [
+  const jaLyrics = [
+    ``,
+    `[SECTION: Verse 1]`,
+    `[VOCAL_PROMPT: soft, close-mic warmth, measured breath, gentle conversational tone, slow build]`,
+    `[LAYER: muted guitar arpeggios, lo-fi piano, ambient pad, minimal percussion]`,
+    `[Texture: sparse, intimate room, warm lo-fi haze]`,
+    ``,
+    `届いた荷物の上に 埃が積もっていく`,
+    `開ける勇気も 捨てる気もなくて`,
+    `冷蔵庫を開けたら 賞味期限が切れた`,
+    `君が好きだったヨーグルトだけが残ってる`,
+    ``,
+    `[SECTION: Hook]`,
+    `[VOCAL_PROMPT: lifted chest voice, rhythmic precision, hook delivery, slight urgency]`,
+    `[LAYER: 808 bass enters, finger snaps, synth swell, density increase]`,
+    `[Texture: warmth expands, stereo widens, pulse locks in]`,
+    ``,
+    `まだここにいるよ (ここにいるよ)`,
+    `変わったのはカレンダーだけのこの部屋`,
+    `まだここにいるよ`,
+    ``,
+    `[SECTION: Chorus]`,
+    `[VOCAL_PROMPT: full emotional projection, sustained notes, powerful but controlled, peak arc]`,
+    `[LAYER: full drums, bass groove, layered synth, vocal doubles, maximum arrangement]`,
+    `[Texture: full density, bright high-end, deep low-end, widest stereo]`,
+    ``,
+    `君が置いていったスリッパの片方みたいに`,
+    `使い道もなくそのまま置かれてる`,
+    `片付けられない それが君の痕跡だから`,
+    `この部屋の温度は 君が合わせたまま`,
+    ``,
+    `[SECTION: Bridge]`,
+    `[VOCAL_PROMPT: vulnerable, stripped back, breath-heavy, raw exposed emotion, whisper close]`,
+    `[LAYER: piano solo, ambient drone, all other instruments drop]`,
+    `[Texture: sudden strip-back, exposed intimacy, silence as texture]`,
+    ``,
+    `元気かって聞く代わりに`,
+    `何も言わないのが 僕の挨拶`,
+    ``,
+    `[SECTION: Outro]`,
+    `[VOCAL_PROMPT: fading whisper, gentle release, breath dissolving]`,
+    `[LAYER: piano sustain, ambient reverb tail, instruments fade one by one]`,
+    `[Texture: dissolving, returning to intimate space, silence approaching]`,
+    ``,
+    `この部屋の温度は...`,
+    `(君が合わせたまま...)`,
+  ].join("\n");
+
+  const lyricsBody = isJa ? jaLyrics : isKo ? [
     ``,
     `[SECTION: Verse 1]`,
     `[VOCAL_PROMPT: soft, close-mic warmth, measured breath, gentle conversational tone, slow build]`,

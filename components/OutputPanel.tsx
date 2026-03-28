@@ -62,8 +62,9 @@ export default function OutputPanel({
 
         {/* Lyrics — 가사 생성 영역 */}
         <LyricsSection
-          vocalProfile={output.lyrics}
+          lyricsContent={output.lyrics}
           style={output.style}
+          language="ko"
           onLyricsUpdate={(newLyrics) => onOutputEdit?.("lyrics", newLyrics)}
         />
 

@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 사용자 API 키로 Claude 호출 → 가사 생성
+// 서버 사이드 환경변수로 Claude 호출 → 가사 생성
 export async function POST(req: NextRequest) {
-  const { prompt, apiKey } = await req.json();
+  const { prompt } = await req.json();
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
-  if (!apiKey || !prompt) {
-    return NextResponse.json({ error: "API 키와 프롬프트가 필요합니다." }, { status: 400 });
+  if (!apiKey) {
+    return NextResponse.json({ error: "ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다." }, { status: 500 });
+  }
+
+  if (!prompt) {
+    return NextResponse.json({ error: "프롬프트가 필요합니다." }, { status: 400 });
   }
 
   try {
@@ -32,7 +37,7 @@ export async function POST(req: NextRequest) {
     const lyrics = data.content?.[0]?.text || "";
 
     return NextResponse.json({ lyrics });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "API 호출 중 오류 발생" }, { status: 500 });
   }
 }

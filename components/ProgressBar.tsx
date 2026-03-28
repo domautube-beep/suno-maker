@@ -30,13 +30,8 @@ interface ProgressBarProps {
 }
 
 export default function ProgressBar({ activeIndex, onStepClick, completedSteps, appPhase }: ProgressBarProps) {
-  // phase 기반으로 오버라이드할 활성 인덱스 결정
-  // style phase → Style 탭(10) 활성화
-  // lyrics phase → Lyrics 탭(11) 활성화
-  // chat phase → 실제 activeIndex 사용
   const resolvedActiveIndex =
-    appPhase === "style" ? STYLE_INDEX :
-    appPhase === "lyrics" ? LYRICS_INDEX :
+    appPhase === "result" ? STYLE_INDEX :
     activeIndex;
 
   return (
@@ -48,7 +43,7 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
 
           // 실제로 값이 입력된 스텝만 오렌지
           // style/lyrics phase일 때는 chat 스텝(0~9)을 모두 완료된 것으로 표시
-          const isCompletedByPhase = (appPhase === "style" || appPhase === "lyrics") && i < STYLE_INDEX;
+          const isCompletedByPhase = appPhase === "result" && i < STYLE_INDEX;
           const hasValue = completedSteps?.has(step.id) || isCompletedByPhase || false;
           let bg = "#e5e5e5"; // 미선택: 연한 회색
           if (hasValue) bg = "#f97316"; // 입력됨: 오렌지
@@ -78,7 +73,7 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
         {PIPELINE.map((step, i) => {
           const isCurrent = i === resolvedActiveIndex;
 
-          const isCompletedByPhase2 = (appPhase === "style" || appPhase === "lyrics") && i < STYLE_INDEX;
+          const isCompletedByPhase2 = appPhase === "result" && i < STYLE_INDEX;
           const hasValue2 = completedSteps?.has(step.id) || isCompletedByPhase2 || false;
           let color = "#d4d4d4"; // 미선택: 연한 회색
           let fontWeight = 400;

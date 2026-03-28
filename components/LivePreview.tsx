@@ -154,6 +154,7 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
       { label: "언어", options: [
         { label: "한국어", value: "Korean lyrics, 2-5 eojeol phrasing, vowel-chain hooks" },
         { label: "English", value: "English lyrics, natural stress pattern, singable phrases" },
+        { label: "日本語", value: "Japanese lyrics, mora-based phrasing, vowel-open hooks" },
         { label: "한국어+English", value: "Korean + English mixed lyrics, bilingual hook design" },
       ]},
     ],

@@ -251,6 +251,10 @@ export function generatePreview(inputs: Partial<SunoInput>): PreviewSection[] {
         en: "English lyrics, natural stress pattern, singable phrases",
         ko: "영어 가사, 자연스러운 강세, 부르기 쉬운 프레이즈",
       },
+      ja: {
+        en: "Japanese lyrics, mora-based phrasing, vowel-open hooks",
+        ko: "일본어 가사, 모라 기반 프레이징, 모음 개방 훅",
+      },
       mixed: {
         en: "Korean + English mixed lyrics, bilingual hook design",
         ko: "한국어 + 영어 믹스, 이중언어 훅 설계",
