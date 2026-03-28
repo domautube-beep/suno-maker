@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { buildLyricsRules, DEFAULT_BANNED_WORDS } from "@/lib/lyricsRules";
 import { Provider } from "./ApiKeyGate";
 
@@ -356,8 +356,15 @@ export default function LyricsSection({
     return parts.join("\n");
   };
 
-  // 스트리밍 텍스트
+  // 스트리밍 텍스트 + 자동 스크롤
   const [streamingLyrics, setStreamingLyrics] = useState("");
+  const streamRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (streamRef.current && streamingLyrics) {
+      streamRef.current.scrollTop = streamRef.current.scrollHeight;
+    }
+  }, [streamingLyrics]);
 
   // API 호출 (스트리밍)
   const handleGenerate = async () => {
@@ -703,7 +710,7 @@ export default function LyricsSection({
               <span style={{ fontSize: "12px", fontWeight: 600, color: "#a3a3a3" }}>가사 생성 중...</span>
             </div>
             {streamingLyrics ? (
-              <pre style={{
+              <pre ref={streamRef} style={{
                 fontSize: "11px", color: "#d4d4d4", fontFamily: "monospace",
                 whiteSpace: "pre-wrap", lineHeight: "1.6",
                 maxHeight: "400px", overflowY: "auto",

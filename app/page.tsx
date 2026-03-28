@@ -68,6 +68,13 @@ export default function Home() {
 
   // AI로 Style of Music 생성 (스트리밍)
   const [streamingText, setStreamingText] = useState("");
+  const styleStreamRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (styleStreamRef.current && streamingText) {
+      styleStreamRef.current.scrollTop = styleStreamRef.current.scrollHeight;
+    }
+  }, [streamingText]);
 
   const generateStyle = useCallback(async (inputs: Record<string, string>) => {
     setGenerating(true);
@@ -294,7 +301,7 @@ export default function Home() {
                       <span style={{ fontSize: "12px", fontWeight: 600, color: "#a3a3a3" }}>생성 중...</span>
                     </div>
                     {streamingText ? (
-                      <pre style={{
+                      <pre ref={styleStreamRef} style={{
                         fontSize: "11px", color: "#d4d4d4", fontFamily: "monospace",
                         whiteSpace: "pre-wrap", lineHeight: "1.6",
                         maxHeight: "300px", overflowY: "auto",
