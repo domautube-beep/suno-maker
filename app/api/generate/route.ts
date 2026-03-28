@@ -99,14 +99,34 @@ function buildStylePrompt(inputs: Record<string, string>): string {
     `=== 사용자 설정 ===`,
   ];
 
+  const tempoLabels: Record<string, string> = {
+    very_slow: "Very Slow (50~65 BPM)", slow: "Slow (66~80 BPM)",
+    mid_slow: "Mid Slow (81~95 BPM)", mid: "Mid (96~110 BPM)",
+    mid_fast: "Mid Fast (111~125 BPM)", fast: "Fast (126~140 BPM)",
+    very_fast: "Very Fast (141~170 BPM)", ultra: "Ultra (171+ BPM)",
+  };
+  const eraLabels: Record<string, string> = {
+    "80s": "1980s", "90s": "1990s", "2000s": "2000s", "2010s": "2010s",
+    "2020s": "2020s", futuristic: "Futuristic", vintage: "Vintage",
+  };
+  const textureLabels: Record<string, string> = {
+    lofi_warm: "Lo-Fi Tape Warmth", clean_digital: "Clean Digital",
+    analog_vintage: "Analog Vintage", raw_gritty: "Raw Gritty",
+    dreamy: "Dreamy", spacious: "Spacious", dense: "Dense Layers", minimal: "Minimal",
+  };
+  const reverbLabels: Record<string, string> = {
+    dry: "Dry (Close-mic)", room: "Room", hall: "Large Hall",
+    cathedral: "Cathedral", lofi_filter: "Lo-Fi Filter", plate: "Plate (Studio)",
+  };
+
   if (inputs.oneLiner) parts.push(`핵심 문장: "${inputs.oneLiner}"`);
   if (inputs.genre) parts.push(`장르: ${inputs.genre}`);
   if (inputs.vibe) parts.push(`느낌/분위기: ${inputs.vibe}`);
-  if (inputs.tempo) parts.push(`템포: ${inputs.tempo}`);
+  if (inputs.tempo) parts.push(`템포: ${tempoLabels[inputs.tempo] || inputs.tempo}`);
   if (inputs.timeSignature) parts.push(`박자: ${inputs.timeSignature}`);
-  if (inputs.era) parts.push(`시대감: ${inputs.era}`);
-  if (inputs.texture) parts.push(`질감: ${inputs.texture}`);
-  if (inputs.reverb) parts.push(`리버브: ${inputs.reverb}`);
+  if (inputs.era) parts.push(`시대감: ${eraLabels[inputs.era] || inputs.era}`);
+  if (inputs.texture) parts.push(`질감: ${textureLabels[inputs.texture] || inputs.texture}`);
+  if (inputs.reverb) parts.push(`리버브: ${reverbLabels[inputs.reverb] || inputs.reverb}`);
   if (inputs.instruments) parts.push(`악기: ${inputs.instruments}`);
   if (inputs.vocal) parts.push(`보컬 방향: ${inputs.vocal}`);
 

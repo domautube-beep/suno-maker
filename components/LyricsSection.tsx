@@ -194,6 +194,9 @@ function SubLabel({ label }: { label: string }) {
 export default function LyricsSection({
   style, language, currentSettings, apiKey, provider, onLyricsUpdate,
 }: LyricsSectionProps) {
+  // 핵심 문장 — Chat Flow에서 가져오되 수정 가능
+  const [coreMessage, setCoreMessage] = useState(currentSettings?.oneLiner || "");
+
   // 송폼 + 드래그
   const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -265,7 +268,7 @@ export default function LyricsSection({
     const genreGuide = GENRE_GUIDES[genre] || "";
 
     const settingsLines: string[] = [];
-    if (currentSettings?.oneLiner) settingsLines.push(`핵심 문장: "${currentSettings.oneLiner}"`);
+    if (coreMessage.trim()) settingsLines.push(`핵심 문장: "${coreMessage.trim()}"`);
     if (currentSettings?.genre) settingsLines.push(`장르: ${currentSettings.genre}`);
     if (currentSettings?.vibe) settingsLines.push(`느낌: ${currentSettings.vibe}`);
     if (currentSettings?.era) settingsLines.push(`시대감: ${currentSettings.era}`);
@@ -363,6 +366,21 @@ export default function LyricsSection({
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics</h3>
         <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>보컬 + 가사 설정 → AI 가사 생성</p>
+      </div>
+
+      {/* 0. 핵심 문장 */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <SectionLabel label="Core Message" sub="이 곡이 전달하려는 핵심 한 줄 (가사의 방향을 결정합니다)" />
+        <textarea
+          value={coreMessage}
+          onChange={(e) => setCoreMessage(e.target.value)}
+          placeholder="예: 새벽 4시, 아직도 너의 흔적이 남은 이 방에서"
+          style={{
+            width: "100%", minHeight: "56px", border: "1px solid #e5e5e5", borderRadius: "12px",
+            padding: "12px 14px", fontSize: "13px", resize: "vertical", outline: "none",
+            lineHeight: "1.6", color: "#0a0a0a",
+          }}
+        />
       </div>
 
       {/* 1. VOCAL PROFILE */}
