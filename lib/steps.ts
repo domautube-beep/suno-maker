@@ -58,6 +58,10 @@ export const STEPS: Step[] = [
       // 일렉트로닉 계열
       { label: "Synthwave", value: "synthwave" },
       { label: "House", value: "house" },
+      { label: "Deep House", value: "deephouse" },
+      { label: "Afro House", value: "afrohouse" },
+      { label: "Melodic House", value: "melodichouse" },
+      { label: "UK Garage", value: "ukgarage" },
       { label: "Techno", value: "techno" },
       { label: "Ambient", value: "ambient" },
       // 클래식/시네마틱

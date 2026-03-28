@@ -148,6 +148,7 @@ function buildStylePrompt(inputs: Record<string, string>): string {
   parts.push(`6. 핵심 문장의 감정을 분석해서 전체 곡의 emotional arc를 마지막에 한 문장으로 서술`);
   parts.push(`7. 900자 이내 영문으로 작성`);
   parts.push(`8. 아티스트명, 프로듀서명, "type beat", "in the style of" 사용 금지`);
+  parts.push(`9. 엔지니어링 수치 절대 금지: Hz, kHz, ms, dB, %, BPM 숫자 이외의 수치는 쓰지 마. Suno가 파싱하지 못함`);
   parts.push(``);
   parts.push(`=== 출력 형식 ===`);
   parts.push(`아래 두 섹션을 구분자로 나눠서 출력해줘:`);

@@ -55,6 +55,10 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
       { label: "일렉트로닉", options: [
         { label: "EDM / Dance", value: "EDM / Dance" },
         { label: "House", value: "House" },
+        { label: "Deep House", value: "Deep House" },
+        { label: "Afro House", value: "Afro House" },
+        { label: "Melodic House", value: "Melodic House" },
+        { label: "UK Garage", value: "UK Garage" },
         { label: "Techno", value: "Techno" },
         { label: "Synthwave", value: "Synthwave" },
         { label: "Ambient", value: "Ambient" },
