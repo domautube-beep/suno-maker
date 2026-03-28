@@ -145,6 +145,22 @@ const GENRE_GUIDES: Record<string, string> = {
   indie: "인디: 독특한 관점, 실험적 구조, 개인적이고 솔직한 어투",
 };
 
+// === 작법 기법 태그 ===
+const TECHNIQUE_TAGS = [
+  { id: "parallelism", label: "대구법", desc: "미러링/대립 구조로 긴장감과 리듬 생성", emoji: "⟷" },
+  { id: "internal_rhyme", label: "내부라임", desc: "줄 안에서 모음/자음 흐름 연결", emoji: "🔗" },
+  { id: "show_dont_tell", label: "장면묘사", desc: "감정을 말 안 하고 사물/행동으로 표현", emoji: "👁" },
+  { id: "rhythm_markers", label: "리듬마커", desc: "em dash, 괄호, 의성어로 호흡/끊김 표현", emoji: "—" },
+  { id: "repetition_hook", label: "반복훅", desc: "앵커 구절 의도적 반복", emoji: "🔁" },
+  { id: "object_motif", label: "소품모티프", desc: "2~3개 사물을 반복 사용, 맥락 변화", emoji: "🔑" },
+  { id: "punchline", label: "펀치라인", desc: "반전/임팩트 있는 결정적 한 줄", emoji: "💥" },
+  { id: "ko_en_mix", label: "한영교차", desc: "한국어+영어 교차로 라임 강화", emoji: "🌐" },
+  { id: "bounce", label: "바운스", desc: "짧/중/짧/긴 줄 길이 패턴", emoji: "📊" },
+  { id: "memory_loop", label: "메모리루프", desc: "마지막 훅이 첫 훅을 회수", emoji: "♻" },
+  { id: "metaphor", label: "비유/은유", desc: "상징과 은유로 깊이 추가", emoji: "🌀" },
+  { id: "emotion_cross", label: "감정교차", desc: "감정을 사물에 이입시켜 표현", emoji: "🪞" },
+];
+
 // === 버튼 컴포넌트 ===
 function Pill({ label, selected, onClick }: { label: string; selected: boolean; onClick: () => void }) {
   return (
@@ -198,6 +214,15 @@ export default function LyricsSection({
   // 금지어
   const [bannedWords, setBannedWords] = useState(DEFAULT_BANNED_WORDS);
   const [showBannedEdit, setShowBannedEdit] = useState(false);
+
+  // 작법 기법 태그 — 기본 전부 ON
+  const [techniques, setTechniques] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(TECHNIQUE_TAGS.map((t) => [t.id, true]))
+  );
+
+  const toggleTechnique = (id: string) => {
+    setTechniques((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // 생성 상태
   const [generating, setGenerating] = useState(false);
@@ -275,6 +300,22 @@ export default function LyricsSection({
 
     if (genreGuide) {
       parts.push(`=== 장르 작법 ===`, genreGuide, ``);
+    }
+
+    // 기법 태그 → 강조/약화 지침
+    const enabledTechs = TECHNIQUE_TAGS.filter((t) => techniques[t.id]);
+    const disabledTechs = TECHNIQUE_TAGS.filter((t) => !techniques[t.id]);
+
+    if (enabledTechs.length > 0) {
+      parts.push(`=== 적극 활용할 기법 ===`);
+      enabledTechs.forEach((t) => parts.push(`- ${t.label}: ${t.desc}`));
+      parts.push(``);
+    }
+
+    if (disabledTechs.length > 0) {
+      parts.push(`=== 사용하지 말 것 ===`);
+      disabledTechs.forEach((t) => parts.push(`- ${t.label}: 이 기법은 이번 가사에서 사용 금지`));
+      parts.push(``);
     }
 
     parts.push(`=== 출력 ===`);
@@ -524,23 +565,56 @@ export default function LyricsSection({
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
               <SectionLabel label="생성된 가사" />
-              <div style={{ display: "flex", gap: "6px" }}>
-                <button onClick={handleCopyLyrics} style={{
-                  padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
-                  backgroundColor: copied ? "#f0fdf4" : "#fff", color: copied ? "#16a34a" : "#a3a3a3",
-                  border: copied ? "1px solid #bbf7d0" : "1px solid #e5e5e5", cursor: "pointer",
-                }}>{copied ? "복사됨!" : "복사"}</button>
-                <button onClick={handleGenerate} style={{
-                  padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
-                  backgroundColor: "#fff7ed", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer",
-                }}>다시 생성</button>
-              </div>
+              <button onClick={handleCopyLyrics} style={{
+                padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
+                backgroundColor: copied ? "#f0fdf4" : "#fff", color: copied ? "#16a34a" : "#a3a3a3",
+                border: copied ? "1px solid #bbf7d0" : "1px solid #e5e5e5", cursor: "pointer",
+              }}>{copied ? "복사됨!" : "복사"}</button>
             </div>
             <pre style={{
               fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap", lineHeight: "1.7",
-              fontFamily: "monospace", maxHeight: "500px", overflowY: "auto",
+              fontFamily: "monospace", maxHeight: "400px", overflowY: "auto",
               padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5",
             }}>{generatedLyrics}</pre>
+
+            {/* 작법 기법 태그 토글 */}
+            <div style={{ marginTop: "16px", padding: "16px", backgroundColor: "#fff", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", textTransform: "uppercase", letterSpacing: "0.05em" }}>작법 기법 조정</p>
+                <p style={{ fontSize: "9px", color: "#a3a3a3" }}>ON = 강화 / OFF = 제거</p>
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "12px" }}>
+                {TECHNIQUE_TAGS.map((tag) => {
+                  const isOn = techniques[tag.id];
+                  return (
+                    <button key={tag.id} onClick={() => toggleTechnique(tag.id)}
+                      title={tag.desc}
+                      style={{
+                        padding: "5px 12px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                        backgroundColor: isOn ? "#0a0a0a" : "#fff",
+                        color: isOn ? "#fff" : "#d4d4d4",
+                        border: isOn ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                        cursor: "pointer", transition: "all 0.15s ease",
+                        display: "flex", alignItems: "center", gap: "4px",
+                      }}>
+                      <span style={{ fontSize: "12px" }}>{tag.emoji}</span>
+                      {tag.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={handleGenerate} style={{
+                width: "100%", padding: "12px", borderRadius: "10px", backgroundColor: "#f97316",
+                color: "#fff", fontSize: "13px", fontWeight: 700, border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                기법 조정 후 재생성
+              </button>
+            </div>
+
             <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "8px", textAlign: "center" }}>
               Suno의 Lyrics 필드에 붙여넣으세요
             </p>
