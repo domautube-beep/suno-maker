@@ -227,8 +227,10 @@ export default function LyricsSection({
     setTechniques((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // 트랙 번호
-  const [trackNumber, setTrackNumber] = useState(1);
+  // 트랙 관리
+  const [tracks, setTracks] = useState<{ id: number; lyrics: string }[]>([]);
+  const [activeTrack, setActiveTrack] = useState(0); // 현재 보고 있는 트랙 인덱스
+  const trackNumber = tracks.length;
 
   // 생성 상태
   const [generating, setGenerating] = useState(false);
@@ -362,6 +364,9 @@ export default function LyricsSection({
       });
       const data = await res.json();
       if (data.lyrics) {
+        const newTrack = { id: trackNumber + 1, lyrics: data.lyrics };
+        setTracks((prev) => [...prev, newTrack]);
+        setActiveTrack(tracks.length); // 새 트랙으로 이동
         setGeneratedLyrics(data.lyrics);
         onLyricsUpdate?.(data.lyrics);
       } else {
@@ -375,12 +380,11 @@ export default function LyricsSection({
 
   // 다음 트랙 생성 — 같은 설정, 새 가사
   const handleGenerateNextTrack = async () => {
-    setTrackNumber((prev) => prev + 1);
     setGenerating(true);
     setError("");
-    setGeneratedLyrics("");
     try {
-      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${trackNumber + 1}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사`;
+      const nextNum = trackNumber + 1;
+      const prompt = buildFullPrompt() + `\n\n=== 추가 지침 ===\n이것은 Track ${nextNum}입니다. 이전 트랙과 같은 톤, 무드, 장르를 유지하되:\n- 완전히 새로운 가사 (같은 단어/이미지 재사용 금지)\n- 같은 앨범에 속한 다른 곡처럼 느껴져야 함\n- 핵심 감정은 유지하되 시점/장면/소품을 바꿔라\n- Hook은 이전 곡과 다른 새로운 앵커 구절\n- 이전 곡의 세계관을 공유하되, 다른 각도에서 바라보는 가사`;
       const res = await fetch("/api/lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -388,6 +392,9 @@ export default function LyricsSection({
       });
       const data = await res.json();
       if (data.lyrics) {
+        const newTrack = { id: nextNum, lyrics: data.lyrics };
+        setTracks((prev) => [...prev, newTrack]);
+        setActiveTrack(tracks.length); // 새 트랙으로 이동
         setGeneratedLyrics(data.lyrics);
         onLyricsUpdate?.(data.lyrics);
       } else {
@@ -624,10 +631,30 @@ export default function LyricsSection({
         )}
 
         {/* 생성 결과 */}
-        {!generating && generatedLyrics && (
+        {!generating && tracks.length > 0 && (
           <div>
+            {/* 트랙 탭 */}
+            {tracks.length > 1 && (
+              <div style={{ display: "flex", gap: "4px", marginBottom: "12px", overflowX: "auto", paddingBottom: "4px" }}>
+                {tracks.map((track, idx) => (
+                  <button key={track.id} onClick={() => {
+                    setActiveTrack(idx);
+                    setGeneratedLyrics(track.lyrics);
+                  }} style={{
+                    padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                    backgroundColor: activeTrack === idx ? "#0a0a0a" : "#fff",
+                    color: activeTrack === idx ? "#fff" : "#737373",
+                    border: activeTrack === idx ? "1px solid #0a0a0a" : "1px solid #d4d4d4",
+                    cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+                  }}>
+                    Track {track.id}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <SectionLabel label="생성된 가사" />
+              <SectionLabel label={tracks.length > 1 ? `Track ${tracks[activeTrack]?.id} 가사` : "생성된 가사"} />
               <button onClick={handleCopyLyrics} style={{
                 padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
                 backgroundColor: copied ? "#f0fdf4" : "#fff", color: copied ? "#16a34a" : "#a3a3a3",
