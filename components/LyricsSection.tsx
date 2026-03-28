@@ -32,24 +32,32 @@ export default function LyricsSection({ vocalProfile, style, onLyricsUpdate, onG
     localStorage.setItem("r3alaude_api_key", key);
   };
 
-  // 가사 생성 프롬프트 조합
+  // 가사 생성 프롬프트 조합 — 핵심 문장 + 보컬 설정 + Style 참고
   const buildLyricsPrompt = () => {
+    // vocalProfile에서 VOCAL PROFILE 명령어만 추출
+    const vocalCommands = vocalProfile.split("\n").filter((l: string) => l.startsWith("[")).join("\n");
+
     return [
       `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
       ``,
       `=== 가사 작성 규칙 ===`,
       LYRICS_RULES,
       ``,
-      `=== Style of Music (참고) ===`,
+      `=== Style of Music (사운드 방향 참고) ===`,
       style,
       ``,
-      `=== VOCAL PROFILE (가사 상단에 포함) ===`,
-      vocalProfile.split("\n").filter((l: string) => l.startsWith("[")).join("\n"),
+      `=== VOCAL PROFILE (사용자가 선택한 보컬 설정 — 가사 상단에 그대로 포함) ===`,
+      vocalCommands,
+      ``,
+      `주의: 위 VOCAL PROFILE은 사용자가 직접 선택한 보컬 타입/음색/딜리버리/공간감이다.`,
+      `이 보컬 설정에 맞는 가사 스타일로 작성해야 한다.`,
+      `예: 랩 딜리버리면 라임/펀치라인 강화, 속삭임이면 짧고 친밀한 문장, 파워풀이면 긴 호흡의 선언적 문장.`,
       ``,
       `=== 설정 ===`,
       `가사 언어: ${language === "ko" ? "한국어" : language === "en" ? "English" : "한국어 + English 믹스"}`,
       ``,
       `위 규칙과 설정에 맞게 VOCAL PROFILE + 전체 가사를 Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태로 출력해줘.`,
+      `VOCAL PROFILE 명령어를 맨 위에 두고, 그 아래에 섹션별 메타데이터 + 가사를 이어서 출력.`,
     ].join("\n");
   };
 
