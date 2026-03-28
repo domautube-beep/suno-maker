@@ -2,7 +2,6 @@
 
 const PIPELINE = [
   { id: "oneLiner", label: "핵심" },
-  { id: "mode", label: "모드" },
   { id: "genre", label: "장르" },
   { id: "instruments", label: "악기" },
   { id: "vibe", label: "느낌" },
@@ -14,7 +13,6 @@ const PIPELINE = [
   { id: "reverb", label: "리버브" },
   { id: "language", label: "언어" },
   { id: "style", label: "Style" },
-  { id: "lyrics", label: "Lyrics" },
 ];
 
 interface ProgressBarProps {

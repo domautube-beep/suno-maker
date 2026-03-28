@@ -116,31 +116,6 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
     setInputs(updated);
     onInputChange(updated);
 
-    // 원샷 모드 → 모든 설정 AI 추천으로 채우고 바로 완료
-    if (stepId === "mode" && value === "oneshot") {
-      addMessage("bot", "원샷 모드! AI가 모든 설정을 추천값으로 채울게요.");
-      const oneshotInputs: SunoInput = {
-        ...updated,
-        genre: "",
-        instruments: "",
-        vibe: "",
-        tempo: "",
-        timeSignature: "",
-        era: "",
-        texture: "",
-        vocal: "",
-        reverb: "",
-        language: "ko",
-      };
-      setInputs(oneshotInputs);
-      onInputChange(oneshotInputs);
-      setTimeout(() => {
-        addMessage("bot", "Forensic Translation 시작...");
-        setTimeout(() => onComplete(oneshotInputs), 800);
-      }, 500);
-      return;
-    }
-
     advanceStep(currentStep, stepId, value);
   };
 
@@ -211,13 +186,18 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 이대로 생성하기 — 프로그레스바 위 (핵심 문장 입력 후 항상 표시) */}
-      {inputs.oneLiner && step.type !== "confirm" && step.id !== "oneLiner" && (
+      {/* 이대로 생성하기 — 프로그레스바 위 (뭐든 1개 이상 입력 후 표시) */}
+      {completedSteps.size > 0 && step.type !== "confirm" && (
         <div style={{ padding: "8px 24px", borderBottom: "1px solid #f0f0f0" }}>
           <button
             onClick={() => {
-              addMessage("bot", "현재 설정으로 바로 생성할게요!");
-              setTimeout(() => onComplete(inputs), 500);
+              // Style 탭(confirm)으로 이동 — 브리핑 보여주고 최종 생성
+              const confirmIndex = STEPS.findIndex((s) => s.type === "confirm");
+              if (confirmIndex >= 0) {
+                addMessage("bot", "설정을 정리했어요. 확인하고 생성해주세요.");
+                setCurrentStep(confirmIndex);
+                setShowInput(true);
+              }
             }}
             style={{
               color: "#f97316",
@@ -356,6 +336,14 @@ export default function ChatFlow({ onComplete, onInputChange }: ChatFlowProps) {
                   inputs={inputs}
                   onConfirm={handleConfirm}
                   onReset={handleReset}
+                  onEditStep={(stepId) => {
+                    const idx = STEPS.findIndex((s) => s.id === stepId);
+                    if (idx >= 0) {
+                      addMessage("bot", `${STEPS[idx].question}`, STEPS[idx].tooltip);
+                      setCurrentStep(idx);
+                      setShowInput(true);
+                    }
+                  }}
                 />
               )}
 

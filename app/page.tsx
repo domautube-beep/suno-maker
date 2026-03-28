@@ -16,6 +16,7 @@ export default function Home() {
   const [output, setOutput] = useState<SunoOutput | null>(null);
   const [forensicLog, setForensicLog] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [chatKey, setChatKey] = useState(0); // ChatFlow 강제 리마운트용
   const [showToast, setShowToast] = useState(false);
   const [modifyHistory, setModifyHistory] = useState<
     { request: string; response: string }[]
@@ -156,6 +157,7 @@ export default function Home() {
     setModifyHistory([]);
     setGenerating(false);
     setIdentityOverride(null);
+    setChatKey((prev) => prev + 1); // ChatFlow 강제 리마운트
   }, []);
 
   return (
@@ -198,6 +200,7 @@ export default function Home() {
           <div className="w-full max-w-5xl flex">
             <div className="flex-1 min-w-0 overflow-y-auto border-r border-border">
               <ChatFlow
+                key={chatKey}
                 onComplete={handleComplete}
                 onInputChange={handleInputChange}
               />

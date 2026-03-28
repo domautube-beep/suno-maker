@@ -26,16 +26,6 @@ export const STEPS: Step[] = [
     required: true,
   },
   {
-    id: "mode",
-    question: "어떻게 만들까요?",
-    tooltip: "원샷 모드는 AI가 모든 설정을 추천값으로 자동 채워서 바로 결과를 보여줍니다. 커스텀 모드는 장르, 느낌, BPM 등을 하나씩 직접 고를 수 있어요.",
-    type: "select",
-    options: [
-      { label: "원샷 모드 — AI가 알아서 다 해줘", value: "oneshot" },
-      { label: "커스텀 모드 — 내가 하나씩 고를게", value: "custom" },
-    ],
-  },
-  {
     id: "genre",
     question: "장르 방향은요?",
     tooltip: "장르를 먼저 정하면 BPM, 박자, 텍스처, 리버브를 추천해드려요. 복수 선택하면 퓨전 스타일이 됩니다.",

@@ -202,10 +202,7 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
     style += ` ${emotionSummary}`;
   }
 
-  // 900자 상한 보장
-  if (style.length > 900) {
-    style = style.substring(0, 897) + "...";
-  }
+  // 900자 초과해도 전체 출력 (사용자가 직접 편집 가능)
 
   // =============================================
   // Lyrics — VOCAL PROFILE + 섹션별 가사
