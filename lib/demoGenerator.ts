@@ -162,16 +162,16 @@ export function generateDemo(inputs: SunoInput): { output: SunoOutput; forensicL
 
   // reverb 입력값에 따른 REVERB 필드 값 결정
   const reverbProfileMap: Record<string, string> = {
-    dry: "close-mic, intimate distance, minimal reverb, 0% wet",
-    room: "medium room reverb, 25% wet, balanced natural space",
-    hall: "large hall reverb, 40% wet, distant presence, long tail",
-    cathedral: "cathedral reverb, 60% wet, massive tail 4s, sacred space",
-    lofi_filter: "lo-fi filtered reverb, tape warmth, vintage compression, 20% wet",
-    plate: "plate reverb, 30% wet, pre-delay 20ms, warm tail 1.2s",
+    dry: "close-mic, intimate distance, minimal reverb, almost dry",
+    room: "medium room reverb, balanced wet/dry, natural space",
+    hall: "large hall reverb, generous wet blend, distant presence, long tail",
+    cathedral: "cathedral reverb, very wet, massive tail, sacred immersive space",
+    lofi_filter: "lo-fi filtered reverb, tape warmth, vintage compression, subtle wet",
+    plate: "plate reverb, warm wet blend, short pre-delay, warm tail",
   };
   const reverbProfile = reverb && reverbProfileMap[reverb]
     ? reverbProfileMap[reverb]
-    : "medium plate, 30% wet, pre-delay 20ms, warm tail 1.2s";
+    : "medium plate, warm wet blend, short pre-delay, warm tail";
 
   // 사용자 vocal 입력 파싱 — "|" 구분자로 타입/음색/딜리버리/공간감 분리
   const vocalParts = inputs.vocal ? inputs.vocal.split("|").map((p) => p.trim()).filter(Boolean) : [];
