@@ -317,7 +317,15 @@ export default function LyricsSection({
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
 
     parts.push(`=== 가사 구조 ===`);
-    parts.push(`가사 언어: ${langLabel} — 반드시 이 언어로만 가사를 작성. 다른 언어 사용 절대 금지 (KO+EN 믹스 선택 시에만 혼용 허용).`);
+    if (lyricsLang === "ko") {
+      parts.push(`가사 언어: 한국어 전용. 영어 단어, 영어 문장, 영어 감탄사 모두 절대 금지. 100% 한국어만 사용. "yeah", "oh", "baby" 같은 영어도 금지. 한국어 감탄사("아", "오", "음")만 허용.`);
+    } else if (lyricsLang === "en") {
+      parts.push(`가사 언어: English only. No Korean, no Japanese. 100% English lyrics.`);
+    } else if (lyricsLang === "ja") {
+      parts.push(`가사 언어: 日本語のみ. 英語禁止、韓国語禁止. 100%日本語で作成.`);
+    } else {
+      parts.push(`가사 언어: 한국어 + English 믹스. 자연스러운 한영 교차 허용.`);
+    }
     parts.push(`송폼 구조: ${songFormLabels.join(" → ")}`);
     parts.push(`가사 밀도: ${selectedDensity.desc}`);
     parts.push(`감정 흐름: ${selectedArc.value}`);
