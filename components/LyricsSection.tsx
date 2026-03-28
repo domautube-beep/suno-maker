@@ -356,25 +356,56 @@ export default function LyricsSection({
     return parts.join("\n");
   };
 
-  // API 호출
+  // 스트리밍 텍스트
+  const [streamingLyrics, setStreamingLyrics] = useState("");
+
+  // API 호출 (스트리밍)
   const handleGenerate = async () => {
     setGenerating(true);
     setError("");
+    setStreamingLyrics("");
     try {
-      const res = await fetch("/api/lyrics", {
+      const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: buildFullPrompt(), apiKey, provider }),
       });
-      const data = await res.json();
-      if (data.lyrics) {
-        const newTrack = { id: trackNumber + 1, lyrics: data.lyrics };
+
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.error || "생성 실패");
+        setGenerating(false);
+        return;
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) { setError("스트림 없음"); setGenerating(false); return; }
+
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split("\n")) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.text) { fullText += parsed.text; setStreamingLyrics(fullText); }
+          } catch { /* 무시 */ }
+        }
+      }
+
+      if (fullText) {
+        const newTrack = { id: trackNumber + 1, lyrics: fullText };
         setTracks((prev) => [...prev, newTrack]);
-        setActiveTrack(tracks.length); // 새 트랙으로 이동
-        setGeneratedLyrics(data.lyrics);
-        onLyricsUpdate?.(data.lyrics);
-      } else {
-        setError(data.error || "생성 실패");
+        setActiveTrack(tracks.length);
+        setGeneratedLyrics(fullText);
+        setStreamingLyrics("");
+        onLyricsUpdate?.(fullText);
       }
     } catch {
       setError("API 호출 실패");
@@ -639,14 +670,26 @@ export default function LyricsSection({
 
       {/* 생성 영역 */}
       <div style={{ padding: "20px" }}>
-        {/* 로딩 */}
+        {/* 스트리밍 생성 중 */}
         {generating && (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <svg className="animate-spin" style={{ margin: "0 auto 16px" }} width="32" height="32" viewBox="0 0 24 24">
-              <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
-              <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>가사 생성 중...</p>
+          <div style={{ padding: "16px", backgroundColor: "#0a0a0a", borderRadius: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f97316", animation: "pulse-dot 1.5s ease-in-out infinite" }} />
+              <span style={{ fontSize: "12px", fontWeight: 600, color: "#a3a3a3" }}>가사 생성 중...</span>
+            </div>
+            {streamingLyrics ? (
+              <pre style={{
+                fontSize: "11px", color: "#d4d4d4", fontFamily: "monospace",
+                whiteSpace: "pre-wrap", lineHeight: "1.6",
+                maxHeight: "400px", overflowY: "auto",
+              }}>{streamingLyrics}<span style={{ animation: "blink 1s infinite" }}>▊</span></pre>
+            ) : (
+              <p style={{ fontSize: "11px", color: "#525252" }}>AI가 가사를 작성하고 있습니다...</p>
+            )}
+            <style>{`
+              @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+              @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+            `}</style>
           </div>
         )}
 
