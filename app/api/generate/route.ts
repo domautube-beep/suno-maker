@@ -29,7 +29,10 @@ export async function POST(req: NextRequest) {
       });
       if (!res.ok) {
         const err = await res.json();
-        return NextResponse.json({ error: err.error?.message || "Claude API 실패" }, { status: res.status });
+        const msg = err.error?.message || "";
+        if (msg.includes("API key")) return NextResponse.json({ error: "API 키가 유효하지 않습니다. 키를 확인해주세요." }, { status: res.status });
+        if (msg.includes("quota") || msg.includes("rate")) return NextResponse.json({ error: "API 사용량 초과. 잠시 후 다시 시도해주세요." }, { status: res.status });
+        return NextResponse.json({ error: msg || "Claude API 호출 실패" }, { status: res.status });
       }
       const data = await res.json();
       resultText = data.content?.[0]?.text || "";
@@ -49,13 +52,16 @@ export async function POST(req: NextRequest) {
       });
       if (!res.ok) {
         const err = await res.json();
-        return NextResponse.json({ error: err.error?.message || "OpenAI API 실패" }, { status: res.status });
+        const msg2 = err.error?.message || "";
+        if (msg2.includes("API key") || msg2.includes("Incorrect")) return NextResponse.json({ error: "API 키가 유효하지 않습니다. 키를 확인해주세요." }, { status: res.status });
+        if (msg2.includes("quota") || msg2.includes("rate")) return NextResponse.json({ error: "API 사용량 초과. 잠시 후 다시 시도해주세요." }, { status: res.status });
+        return NextResponse.json({ error: msg2 || "OpenAI API 호출 실패" }, { status: res.status });
       }
       const data = await res.json();
       resultText = data.choices?.[0]?.message?.content || "";
 
     } else if (provider === "gemini") {
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

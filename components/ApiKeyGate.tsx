@@ -29,10 +29,31 @@ export default function ApiKeyGate({ onKeySubmit }: ApiKeyGateProps) {
 
   const detected = detectProvider(key);
 
-  const handleSubmit = () => {
+  const [validating, setValidating] = useState(false);
+
+  const handleSubmit = async () => {
     if (!key.trim()) { setError("API 키를 입력해주세요."); return; }
     if (!detected) { setError("지원하지 않는 키 형식입니다. Claude, GPT, Gemini 키를 입력해주세요."); return; }
-    onKeySubmit(key.trim(), detected);
+
+    // API 키 유효성 검증
+    setValidating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/validate-key", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: key.trim(), provider: detected }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        onKeySubmit(key.trim(), detected);
+      } else {
+        setError(data.error || "API 키가 유효하지 않습니다.");
+      }
+    } catch {
+      setError("키 검증 중 오류 발생. 네트워크를 확인해주세요.");
+    }
+    setValidating(false);
   };
 
   return (
@@ -116,15 +137,16 @@ export default function ApiKeyGate({ onKeySubmit }: ApiKeyGateProps) {
         {/* 시작 버튼 */}
         <button
           onClick={handleSubmit}
+          disabled={validating || !detected}
           style={{
             width: "100%", padding: "14px", borderRadius: "12px",
-            backgroundColor: detected ? "#0a0a0a" : "#e5e5e5",
-            color: detected ? "#fff" : "#a3a3a3",
+            backgroundColor: detected && !validating ? "#0a0a0a" : "#e5e5e5",
+            color: detected && !validating ? "#fff" : "#a3a3a3",
             fontSize: "14px", fontWeight: 700, border: "none",
-            cursor: detected ? "pointer" : "not-allowed",
+            cursor: detected && !validating ? "pointer" : "not-allowed",
           }}
         >
-          시작하기
+          {validating ? "키 확인 중..." : "시작하기"}
         </button>
       </div>
     </div>
