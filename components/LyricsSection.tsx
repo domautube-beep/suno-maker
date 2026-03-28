@@ -692,7 +692,7 @@ export default function LyricsSection({
                       </button>
                       {/* 호버 툴팁 */}
                       <div className="technique-tooltip" style={{
-                        position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)",
+                        position: "absolute", bottom: "calc(100% + 8px)", left: "0",
                         backgroundColor: "#0a0a0a", color: "#fff", borderRadius: "12px",
                         padding: "12px 16px", width: "260px", zIndex: 50,
                         pointerEvents: "none", opacity: 0, transition: "opacity 0.2s",
@@ -703,7 +703,7 @@ export default function LyricsSection({
                         <p style={{ fontSize: "10px", color: "#d4d4d4", fontStyle: "italic", lineHeight: "1.5", borderTop: "1px solid #333", paddingTop: "8px" }}>
                           예: {tag.example}
                         </p>
-                        <div style={{ position: "absolute", bottom: "-5px", left: "50%", transform: "translateX(-50%) rotate(45deg)", width: "10px", height: "10px", backgroundColor: "#0a0a0a" }} />
+                        <div style={{ position: "absolute", bottom: "-5px", left: "20px", transform: "rotate(45deg)", width: "10px", height: "10px", backgroundColor: "#0a0a0a" }} />
                       </div>
                     </div>
                   );
