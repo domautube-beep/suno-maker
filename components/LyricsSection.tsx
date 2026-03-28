@@ -61,6 +61,12 @@ const VP_VOICE_TYPE = [
   { label: "여성 저음", value: "Female low alto, rich warm depth, smoky undertone" },
   { label: "여성 중음", value: "Female mid-range mezzo, soulful with slight rasp, clear" },
   { label: "여성 고음", value: "Female high soprano, airy and light, crystalline top notes" },
+  { label: "듀엣 (남녀)", value: "Male-female duet, alternating verses, harmonized chorus, call-and-response" },
+  { label: "듀엣 (남남)", value: "Male-male duet, contrasting registers, harmonic blend, tag-team verses" },
+  { label: "듀엣 (여여)", value: "Female-female duet, interweaving harmonies, shared melodic lines" },
+  { label: "그룹", value: "Group vocal, multi-part harmony, layered ensemble, distributed lines" },
+  { label: "소년 목소리", value: "Young male voice, bright and pure, pre-break register, innocent tone" },
+  { label: "소녀 목소리", value: "Young female voice, clear and bright, sweet high register, youthful energy" },
 ];
 
 const VP_TIMBRE = [
@@ -70,6 +76,10 @@ const VP_TIMBRE = [
   { label: "아날로그", value: "Warm analog texture, slight breathiness, vintage tape saturation" },
   { label: "파워풀", value: "Powerful chest projection, full resonance, bold dynamic range" },
   { label: "소울풀", value: "Soulful richness, gospel-influenced warmth, deep emotional color" },
+  { label: "크리스탈", value: "Crystal clear, pristine high frequencies, bell-like purity, transparent" },
+  { label: "메탈릭", value: "Metallic edge, sharp overtones, industrial sheen, cutting presence" },
+  { label: "스모키", value: "Smoky darkness, low-register warmth, jazz-club intimacy, shadowy" },
+  { label: "나른한", value: "Lazy warmth, sleepy texture, half-awake softness, pillow-talk quality" },
 ];
 
 const VP_ARTICULATION = [
@@ -77,6 +87,9 @@ const VP_ARTICULATION = [
   { label: "정밀한", value: "Precise diction, crisp consonants, sharp word boundaries" },
   { label: "흘리는", value: "Flowing legato, blurred word edges, dreamy connected phrasing" },
   { label: "끊어치는", value: "Staccato attack, punchy syllables, rhythmic word separation" },
+  { label: "속사포", value: "Rapid-fire delivery, machine-gun syllables, compressed breath, dense packing" },
+  { label: "늘어지는", value: "Stretched vowels, elongated phrasing, drawn-out delivery, languid" },
+  { label: "뱉는", value: "Spit-style attack, aggressive onset, percussive consonants, hard edge" },
 ];
 
 const VP_DELIVERY = [
@@ -86,6 +99,10 @@ const VP_DELIVERY = [
   { label: "나른한", value: "Laid-back lazy delivery, half-whisper, effortless cool, behind-beat feel" },
   { label: "랩 플로우", value: "Rhythmic precision, sharp articulation, groove-locked, punchline delivery" },
   { label: "일정한 힘", value: "Consistent power, sustained energy, confident projection throughout" },
+  { label: "노래하듯 랩", value: "Melodic rap, singing-rapping hybrid, auto-tune ready, melodic flow" },
+  { label: "절규", value: "Screaming intensity, raw primal energy, throat-tearing passion, punk edge" },
+  { label: "흥얼거림", value: "Humming and murmuring, gentle half-melody, casual and intimate" },
+  { label: "선언적", value: "Declarative authority, anthem-style projection, commanding presence" },
 ];
 
 const VP_REVERB = [
@@ -95,6 +112,10 @@ const VP_REVERB = [
   { label: "홀", value: "Large hall reverb, wide and distant, ethereal presence" },
   { label: "빈티지", value: "Vintage plate reverb, warm tail, classic studio color" },
   { label: "Lo-Fi", value: "Lo-fi filtered reverb, tape warmth, vintage compression" },
+  { label: "대성당", value: "Cathedral reverb, massive tail 4s+, sacred immersive space" },
+  { label: "야외", value: "Open-air outdoor ambience, natural echo, unconfined space" },
+  { label: "전화기", value: "Telephone filter, narrow bandwidth, lo-fi distortion, retro effect" },
+  { label: "스타디움", value: "Stadium-sized reverb, crowd-echo ambience, arena scale" },
 ];
 
 const VP_EVOLUTION = [
@@ -103,6 +124,9 @@ const VP_EVOLUTION = [
   { label: "폭발→침잠", value: "Bold opening → controlled descent → whispered bridge → gentle resolution" },
   { label: "점진적 상승", value: "Close whisper verse → open supported chorus → exposed bridge → layered final chorus with doubles" },
   { label: "감정 롤러코스터", value: "Intimate verse → explosive chorus → stripped bridge → cathartic finale" },
+  { label: "독백→합창", value: "Solo whisper start → gradual harmony layers → full choir finale → unified resolution" },
+  { label: "거친→세련", value: "Raw unfiltered opening → progressively polished delivery → refined emotional control" },
+  { label: "마스크 벗기", value: "Guarded controlled verse → cracks in bridge → fully exposed vulnerable finale" },
 ];
 
 // === 장르별 가이드 ===
