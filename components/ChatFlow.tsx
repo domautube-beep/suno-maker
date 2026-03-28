@@ -36,14 +36,17 @@ function OneLinerInput({ placeholder, onSubmit, apiKey, provider }: {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: `사용자가 곡의 핵심 문장을 짧게 썼습니다: "${value.trim()}"
+          prompt: `다음은 사용자가 작성한 곡의 핵심 문장입니다. 반드시 이 문장을 기반으로 확장하세요.
 
-이 문장을 더 풍부하고 구체적으로 확장해줘. 규칙:
-1. 원래 감정과 의미를 유지하면서 장면/상황/감각을 더 구체적으로 서술
-2. 2~3문장으로 확장 (원문의 약 3배)
-3. 가사가 아니라 "곡의 방향을 설명하는 문장"으로
-4. 한국어로 작성
-5. 확장된 문장만 출력 (설명 없이)`,
+원문: ${value.trim()}
+
+위 원문을 더 풍부하게 확장하세요:
+- 원래 감정과 의미를 유지
+- 장면, 상황, 감각을 구체적으로 추가
+- 2~3문장으로 확장
+- 곡의 방향을 설명하는 문장으로 (가사 아님)
+- 한국어로
+- 확장된 문장만 출력하세요. 설명, 인사, 질문 금지.`,
           apiKey,
           provider,
         }),
