@@ -198,6 +198,9 @@ export default function LyricsSection({
   // 언어
   const [lyricsLang, setLyricsLang] = useState(language || "");
 
+  // 레퍼런스 곡
+  const [reference, setReference] = useState("");
+
   // 송폼 + 드래그
   const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -315,6 +318,16 @@ export default function LyricsSection({
     parts.push(`=== VOCAL PROFILE (가사 최상단에 그대로 포함) ===`, buildVocalProfile(), ``);
     // 송폼 → 라벨로 변환
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
+
+    if (reference.trim()) {
+      parts.push(`=== 레퍼런스 곡 (방향의 50% 참고) ===`);
+      parts.push(`"${reference.trim()}"의 느낌, 감성, 가사 스타일, 곡 구조를 50% 참고하되:`);
+      parts.push(`- 아티스트명이나 곡 제목을 가사/Style에 직접 언급하지 마`);
+      parts.push(`- 가사를 그대로 베끼지 마`);
+      parts.push(`- 레퍼런스 곡의 "감정의 결"과 "표현 방식"만 흡수`);
+      parts.push(`- 나머지 50%는 사용자 설정(핵심 문장, 장르, 느낌 등)에서 가져와`);
+      parts.push(``);
+    }
 
     parts.push(`=== 가사 구조 ===`);
     if (lyricsLang === "ko") {
@@ -558,7 +571,23 @@ export default function LyricsSection({
         </div>
       </div>
 
-      {/* 2. VOCAL PROFILE */}
+      {/* 2. REFERENCE */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <SectionLabel label="Reference" sub="참고할 곡이 있으면 입력하세요 (선택사항). 곡의 방향이 50% 반영됩니다" />
+        <input
+          type="text"
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder='예: 아이유 - 밤편지, Billie Eilish - Ocean Eyes'
+          style={{
+            width: "100%", border: "1px solid #e5e5e5", borderRadius: "12px",
+            padding: "12px 14px", fontSize: "13px", outline: "none",
+            color: "#0a0a0a",
+          }}
+        />
+      </div>
+
+      {/* 3. VOCAL PROFILE */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionLabel label="Vocal Profile" sub="Suno가 보컬을 렌더링하는 방식을 결정합니다" />
 
