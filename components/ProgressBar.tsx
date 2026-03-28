@@ -11,8 +11,8 @@ const PIPELINE = [
   { id: "texture", label: "텍스처" },
   { id: "vocal", label: "보컬" },
   { id: "reverb", label: "리버브" },
-  { id: "language", label: "언어" },
   { id: "style", label: "Style" },
+  { id: "lyrics", label: "Lyrics" },
 ];
 
 interface ProgressBarProps {

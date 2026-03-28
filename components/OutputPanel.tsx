@@ -2,6 +2,7 @@
 
 import { SunoOutput } from "@/lib/types";
 import OutputBlock from "./OutputBlock";
+import LyricsSection from "./LyricsSection";
 
 interface OutputPanelProps {
   output: SunoOutput;
@@ -59,12 +60,11 @@ export default function OutputPanel({
           onEdit={(newContent) => onOutputEdit?.("style", newContent)}
         />
 
-        {/* Lyrics — Suno "Lyrics" 필드 */}
-        <OutputBlock
-          title="Lyrics"
-          subtitle="Suno 'Lyrics' 필드에 붙여넣기 (VOCAL PROFILE + 가사)"
-          content={output.lyrics}
-          onEdit={(newContent) => onOutputEdit?.("lyrics", newContent)}
+        {/* Lyrics — 가사 생성 영역 */}
+        <LyricsSection
+          vocalProfile={output.lyrics}
+          style={output.style}
+          onLyricsUpdate={(newLyrics) => onOutputEdit?.("lyrics", newLyrics)}
         />
 
         {/* 비슷한 곡 더 만들기 배너 */}

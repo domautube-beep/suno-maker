@@ -181,17 +181,6 @@ export const STEPS: Step[] = [
     skipLabel: "맡길게",
   },
   {
-    id: "language",
-    question: "가사 언어만 알려주세요.",
-    tooltip: "언어에 맞는 작사 규칙이 적용됩니다.",
-    type: "select",
-    options: [
-      { label: "한국어", value: "ko" },
-      { label: "English", value: "en" },
-      { label: "한국어 + English", value: "mixed" },
-    ],
-  },
-  {
     id: "confirm",
     question: "",
     type: "confirm",
