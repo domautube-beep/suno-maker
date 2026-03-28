@@ -66,7 +66,29 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentInputs, phase]);
 
-  // 프리뷰 섹션 수정 — value가 이제 내부 키 그대로이므로 역매핑 불필요
+  // AI로 Style of Music 생성
+  const generateStyle = useCallback(async (inputs: Record<string, string>) => {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs, apiKey, provider }),
+      });
+      const data = await res.json();
+      if (data.style) {
+        setOutput((prev) => prev ? { ...prev, style: data.style } : { style: data.style, lyrics: "" });
+        setForensicLog(data.forensicLog || "");
+      } else if (data.error) {
+        setForensicLog(`[에러] ${data.error}`);
+      }
+    } catch {
+      setForensicLog("[에러] API 호출 실패");
+    }
+    setGenerating(false);
+  }, [apiKey, provider]);
+
+  // 프리뷰 섹션 수정
   const handleSectionUpdate = useCallback((sectionId: string, newValue: string) => {
     const fieldMap: Record<string, keyof SunoInput> = {
       genre: "genre", texture: "vibe", "texture-step": "texture",
@@ -92,39 +114,22 @@ export default function Home() {
 
     const inputKey = fieldMap[sectionId];
     if (inputKey) {
-      setCurrentInputs((prev) => ({ ...prev, [inputKey]: newValue }));
+      const updatedInputs = { ...currentInputs, [inputKey]: newValue };
+      setCurrentInputs(updatedInputs);
 
-      // 프리뷰 섹션도 즉시 업데이트 (useEffect 대기 없이)
+      // 프리뷰 섹션도 즉시 업데이트
       setPreviewSections((prev) =>
         prev.map((s) => s.id === sectionId ? { ...s, english: newValue } : s)
       );
       flashToastRef.current();
-    }
-  }, []);
 
-  // AI로 Style of Music 생성
-  const generateStyle = useCallback(async (inputs: Record<string, string>) => {
-    setGenerating(true);
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inputs, apiKey, provider }),
-      });
-      const data = await res.json();
-      if (data.style) {
-        setOutput({ style: data.style, lyrics: "" });
-        setForensicLog(data.forensicLog || "");
-      } else if (data.error) {
-        setForensicLog(`[에러] ${data.error}`);
-        setOutput({ style: "", lyrics: "" });
+      // 스타일에 영향주는 설정 변경 시 자동 재생성
+      const styleFields = ["genre", "vibe", "texture", "era", "reverb", "instruments"];
+      if (styleFields.includes(inputKey)) {
+        generateStyle(updatedInputs as Record<string, string>);
       }
-    } catch {
-      setForensicLog("[에러] API 호출 실패");
-      setOutput({ style: "", lyrics: "" });
     }
-    setGenerating(false);
-  }, [apiKey, provider]);
+  }, [currentInputs, generateStyle]);
 
   // 대화 완료 → result phase + AI 스타일 생성
   const handleComplete = useCallback((inputs: SunoInput) => {
