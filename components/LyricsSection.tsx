@@ -198,6 +198,9 @@ export default function LyricsSection({
   // 핵심 문장 — Chat Flow에서 가져오되 수정 가능
   const [coreMessage, setCoreMessage] = useState(currentSettings?.oneLiner || "");
 
+  // 언어
+  const [lyricsLang, setLyricsLang] = useState(language || "");
+
   // 송폼 + 드래그
   const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -240,7 +243,7 @@ export default function LyricsSection({
   const [copied, setCopied] = useState(false);
 
   // 선택 완료 여부
-  const isReady = songFormBlocks.length >= 3 && density && emotionArc >= 0 && vpVoice >= 0 && vpTimbre >= 0 && vpDelivery >= 0 && vpReverb >= 0 && vpEvolution >= 0;
+  const isReady = lyricsLang && songFormBlocks.length >= 3 && density && emotionArc >= 0 && vpVoice >= 0 && vpTimbre >= 0 && vpDelivery >= 0 && vpReverb >= 0 && vpEvolution >= 0;
 
   // Vocal Profile 프롬프트 조합
   const buildVocalProfile = () => {
@@ -269,7 +272,7 @@ export default function LyricsSection({
   const buildFullPrompt = () => {
     const selectedArc = EMOTION_ARCS[emotionArc];
     const selectedDensity = DENSITY_OPTIONS.find((d) => d.value === density)!;
-    const langLabel = language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어 + English 믹스";
+    const langLabel = lyricsLang === "ko" ? "한국어" : lyricsLang === "en" ? "English" : lyricsLang === "ja" ? "日本語" : "한국어 + English 믹스";
     const genre = currentSettings?.genre || "";
     const genreGuide = GENRE_GUIDES[genre] || "";
 
@@ -441,7 +444,25 @@ export default function LyricsSection({
         />
       </div>
 
-      {/* 1. VOCAL PROFILE */}
+      {/* 1. LANGUAGE */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <SectionLabel label="Language" sub="가사 언어를 선택하세요" />
+        <div style={{ display: "flex", gap: "6px" }}>
+          {[
+            { label: "한국어", value: "ko" },
+            { label: "English", value: "en" },
+            { label: "日本語", value: "ja" },
+            { label: "KO + EN", value: "mixed" },
+          ].map((lang) => (
+            <Pill key={lang.value} label={lang.label}
+              selected={lyricsLang === lang.value}
+              dimmed={!!lyricsLang && lyricsLang !== lang.value}
+              onClick={() => setLyricsLang(lang.value)} />
+          ))}
+        </div>
+      </div>
+
+      {/* 2. VOCAL PROFILE */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
         <SectionLabel label="Vocal Profile" sub="Suno가 보컬을 렌더링하는 방식을 결정합니다" />
 
