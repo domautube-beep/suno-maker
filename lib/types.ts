@@ -15,7 +15,7 @@ export interface SunoInput {
   timeSignature: string;
   era: string;
   texture: string;
-  vocal: string;
+  vocal?: string;
   reverb: string;
   language: string;
 }
