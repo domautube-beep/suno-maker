@@ -28,11 +28,13 @@ const SONG_BLOCKS = [
 ];
 
 const SONG_FORM_PRESETS = [
-  { label: "기본", blocks: ["verse", "hook", "chorus", "verse", "bridge", "hook", "chorus", "outro"] },
-  { label: "짧게", blocks: ["verse", "chorus", "verse", "chorus", "outro"] },
-  { label: "랩", blocks: ["verse", "verse", "hook", "chorus", "bridge", "chorus"] },
-  { label: "발라드", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "chorus"] },
-  { label: "팝", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus"] },
+  { label: "Pop/K-Pop", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"] },
+  { label: "Hip-Hop", blocks: ["verse", "hook", "verse", "hook", "bridge", "hook"] },
+  { label: "R&B", blocks: ["verse", "hook", "chorus", "verse", "bridge", "hook", "chorus", "outro"] },
+  { label: "Ballad", blocks: ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"] },
+  { label: "EDM", blocks: ["verse", "pre", "chorus", "verse", "chorus", "chorus", "outro"] },
+  { label: "Rock", blocks: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus"] },
+  { label: "Lo-Fi", blocks: ["verse", "chorus", "verse", "chorus", "outro"] },
 ];
 
 // === 가사 밀도 ===

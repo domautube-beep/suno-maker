@@ -151,42 +151,36 @@ export function generatePreview(inputs: Partial<SunoInput>): PreviewSection[] {
   if (inputs.genre) {
     const genreTags = GENRE_MAP[inputs.genre];
     const genreKo = GENRE_KO_MAP[inputs.genre] || inputs.genre;
-    if (genreTags) {
-      sections.push({
-        id: "genre",
-        label: "GENRE",
-        english: genreTags,
-        korean: `${genreKo} 장르 특성 반영`,
-      });
-    }
+    sections.push({
+      id: "genre",
+      label: "GENRE",
+      english: genreTags || inputs.genre,
+      korean: genreTags ? `${genreKo} 장르 특성 반영` : `${inputs.genre} 장르`,
+    });
   }
 
-  // 3단계: 시대 섹션 — 시대감 태그 표시
+  // 3단계: 시대 섹션
   if (inputs.era) {
     const eraTags = ERA_MAP[inputs.era];
     const eraKo = ERA_KO_MAP[inputs.era] || inputs.era;
-    if (eraTags) {
-      sections.push({
-        id: "era",
-        label: "ERA",
-        english: eraTags,
-        korean: `${eraKo} 시대 사운드 특성`,
-      });
-    }
+    sections.push({
+      id: "era",
+      label: "ERA",
+      english: eraTags || inputs.era,
+      korean: eraTags ? `${eraKo} 시대 사운드 특성` : `${inputs.era} 시대`,
+    });
   }
 
-  // 4단계: 텍스처 섹션 — 프로덕션 질감 태그 표시 (vibe의 texture와 별도)
+  // 4단계: 텍스처 섹션
   if (inputs.texture) {
     const textureTags = TEXTURE_MAP[inputs.texture];
     const textureKo = TEXTURE_KO_MAP[inputs.texture] || inputs.texture;
-    if (textureTags) {
-      sections.push({
-        id: "texture-step",
-        label: "TEXTURE",
-        english: textureTags,
-        korean: `${textureKo} 프로덕션 질감`,
-      });
-    }
+    sections.push({
+      id: "texture-step",
+      label: "TEXTURE",
+      english: textureTags || inputs.texture,
+      korean: textureTags ? `${textureKo} 프로덕션 질감` : `${inputs.texture} 질감`,
+    });
   }
 
   // 5단계: 느낌 → 물리적 사운드 태그로 변환
@@ -216,18 +210,16 @@ export function generatePreview(inputs: Partial<SunoInput>): PreviewSection[] {
     }
   }
 
-  // 리버브 섹션 — 리버브 설정 표시
+  // 리버브 섹션
   if (inputs.reverb) {
     const reverbTags = REVERB_MAP[inputs.reverb];
     const reverbKo = REVERB_KO_MAP[inputs.reverb] || inputs.reverb;
-    if (reverbTags) {
-      sections.push({
-        id: "reverb",
-        label: "REVERB",
-        english: reverbTags,
-        korean: `${reverbKo} 공간감 설정`,
-      });
-    }
+    sections.push({
+      id: "reverb",
+      label: "REVERB",
+      english: reverbTags || inputs.reverb,
+      korean: reverbTags ? `${reverbKo} 공간감 설정` : `${inputs.reverb} 리버브`,
+    });
   }
 
   // 보컬 프로파일
