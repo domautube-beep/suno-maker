@@ -1,95 +1,123 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { LYRICS_RULES } from "@/lib/lyricsRules";
 
 interface LyricsSectionProps {
-  // 자동 생성된 보컬 프로필 + 데모 가사 (generateDemo 결과)
+  // 자동 생성된 보컬 프로필 (generateDemo에서 [] 명령어들)
   lyricsContent: string;
   // 생성된 Style of Music
   style: string;
-  // 현재 설정된 언어
+  // 현재 언어
   language: string;
-  // 현재 모든 입력 설정 (프롬프트에 포함)
+  // 모든 입력 설정
   currentSettings?: Record<string, string>;
-  onLyricsUpdate?: (lyrics: string) => void;
   onLanguageChange?: (lang: string) => void;
+  // 아래는 미사용이지만 page.tsx 호환용
+  onLyricsUpdate?: (lyrics: string) => void;
   onGenerateVariation?: () => void;
   trackNumber?: number;
 }
+
+// 송폼 프리셋
+const SONG_FORMS = [
+  { label: "기본", value: "Verse 1 → Hook → Chorus → Verse 2 → Bridge → Hook → Chorus → Outro", desc: "V-H-C-V-B-H-C-O" },
+  { label: "짧게", value: "Verse 1 → Chorus → Verse 2 → Chorus → Outro", desc: "V-C-V-C-O" },
+  { label: "랩", value: "Verse 1 → Verse 2 → Hook → Chorus → Bridge → Chorus", desc: "V-V-H-C-B-C" },
+  { label: "발라드", value: "Verse 1 → Chorus → Verse 2 → Chorus → Bridge → Final Chorus", desc: "V-C-V-C-B-C" },
+];
+
+// 감정 흐름 프리셋
+const EMOTION_ARCS = [
+  { label: "잔잔→폭발", value: "시작은 조용하고 친밀하게, 점진적으로 감정이 고조되어 코러스에서 폭발. 브릿지에서 다시 가라앉았다가 마지막 코러스에서 최고조.", bars: [1, 2, 4, 2, 1, 4, 5, 2] },
+  { label: "일정하게", value: "처음부터 끝까지 일정한 에너지. 감정 변화보다 그루브와 반복으로 중독성 유지.", bars: [3, 3, 3, 3, 3, 3, 3, 3] },
+  { label: "폭발→잔잔", value: "강렬하게 시작해서 점점 감정을 내려놓는 구조. 마지막에 속삭이듯 끝남.", bars: [5, 4, 3, 4, 3, 2, 2, 1] },
+  { label: "롤러코스터", value: "벌스에서 낮고 코러스에서 높은 극적인 대비. 섹션마다 에너지가 급변.", bars: [2, 1, 5, 2, 1, 5, 2, 1] },
+];
+
+// 가사 밀도 프리셋
+const DENSITY_OPTIONS = [
+  { label: "짧게", value: "short", desc: "Verse 2줄, Chorus 2줄 — 미니멀하고 여백이 많은 가사" },
+  { label: "보통", value: "medium", desc: "Verse 4줄, Chorus 4줄 — 표준적인 가사 분량" },
+  { label: "길게", value: "long", desc: "Verse 6줄+, Chorus 4줄+ — 스토리텔링이 풍부한 가사" },
+];
+
+// 보컬 설정 옵션
+const VOICE_TYPES = [
+  { label: "남성 저음", value: "male, low baritone, deep chest resonance" },
+  { label: "남성 중음", value: "male, mid-range tenor, warm natural presence" },
+  { label: "남성 고음", value: "male, high tenor, bright falsetto capable" },
+  { label: "여성 저음", value: "female, low alto, rich warm depth" },
+  { label: "여성 중음", value: "female, mid-range mezzo, clear and balanced" },
+  { label: "여성 고음", value: "female, high soprano, airy and light" },
+];
+
+const TIMBRES = [
+  { label: "허스키", value: "husky grain, rough warmth, textured edge" },
+  { label: "매끈한", value: "smooth silk, clean resonance, polished tone" },
+  { label: "공기감", value: "airy breathy, whisper-close, soft presence" },
+  { label: "파워풀", value: "powerful chest, full projection, bold resonance" },
+  { label: "소울풀", value: "soulful richness, gospel-influenced, deep emotion" },
+  { label: "거친", value: "raw rasp, gritty attack, distorted edge" },
+];
+
+const DELIVERIES = [
+  { label: "대화체", value: "conversational intimacy, natural phrasing" },
+  { label: "감정폭발", value: "emotional outburst, crescendo peaks, belting" },
+  { label: "나른한", value: "laid-back lazy, half-whisper, effortless cool" },
+  { label: "리드미컬", value: "rhythmic precision, groove-locked, punchy" },
+  { label: "랩", value: "rap flow, sharp articulation, punchline delivery" },
+  { label: "속삭임", value: "whisper singing, ASMR-close, breath-heavy" },
+];
 
 export default function LyricsSection({
   lyricsContent,
   style,
   language,
   currentSettings,
-  onLyricsUpdate,
   onLanguageChange,
-  onGenerateVariation,
-  trackNumber = 1,
 }: LyricsSectionProps) {
+  const [songForm, setSongForm] = useState(0);
+  const [emotionArc, setEmotionArc] = useState(0);
+  const [density, setDensity] = useState("medium");
   const [copied, setCopied] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(lyricsContent);
-  // 사용자가 Claude.ai에서 가사를 생성하고 붙여넣은 적이 있는지
-  const [hasCustomLyrics, setHasCustomLyrics] = useState(false);
-  // 가사 생성 후 설정이 변경되었는지
-  const [settingsChanged, setSettingsChanged] = useState(false);
-  // 설정 변경 감지용 — 가사 생성 시점의 설정 스냅샷
-  const settingsSnapshotRef = useRef<string>("");
-  // Claude.ai 붙여넣기 모드
-  const [pasteMode, setPasteMode] = useState(false);
-  const [pastedLyrics, setPastedLyrics] = useState("");
 
-  // 가사 내용 변경 시 편집값 동기화
-  useEffect(() => {
-    if (!isEditing) {
-      setEditValue(lyricsContent);
-    }
-  }, [lyricsContent, isEditing]);
+  // 보컬 스타일 디테일 설정
+  const [voiceType, setVoiceType] = useState(0);
+  const [timbre, setTimbre] = useState(1);
+  const [delivery, setDelivery] = useState(0);
 
-  // 설정 변경 감지
-  useEffect(() => {
-    if (!hasCustomLyrics) return;
-    const currentSnapshot = JSON.stringify(currentSettings || {});
-    if (settingsSnapshotRef.current && settingsSnapshotRef.current !== currentSnapshot) {
-      setSettingsChanged(true);
-    }
-  }, [currentSettings, hasCustomLyrics]);
+  // 보컬 프로필 명령어 — 사용자 선택 기반으로 동적 생성
+  const vocalProfileLines = [
+    `[VOCAL_PROFILE: ${VOICE_TYPES[voiceType].value.split(",")[0]}, ${TIMBRES[timbre].value.split(",")[0]}, ${DELIVERIES[delivery].value.split(",")[0]}]`,
+    `[VOICE_TYPE: ${VOICE_TYPES[voiceType].value}]`,
+    `[TIMBRE: ${TIMBRES[timbre].value}]`,
+    `[ARTICULATION: relaxed consonants, flowing legato, occasional breathy onset]`,
+    `[VIBRATO: minimal, slow controlled, phrase-end only]`,
+    `[DELIVERY: ${DELIVERIES[delivery].value}]`,
+    `[PERFORMANCE_TRAITS: audible breath before key phrases, natural crescendo into hook]`,
+  ].join("\n");
 
-  // 복사
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(lyricsContent);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // 편집 저장
-  const handleSave = () => {
-    onLyricsUpdate?.(editValue);
-    setIsEditing(false);
-  };
-
-  // 설정 요약 텍스트 생성
+  // 설정 요약
   const buildSettingsSummary = () => {
     if (!currentSettings) return "";
     const lines: string[] = [];
     if (currentSettings.oneLiner) lines.push(`핵심 문장: "${currentSettings.oneLiner}"`);
     if (currentSettings.genre) lines.push(`장르: ${currentSettings.genre}`);
-    if (currentSettings.vibe) lines.push(`느낌: ${currentSettings.vibe}`);
-    if (currentSettings.era) lines.push(`시대: ${currentSettings.era}`);
+    if (currentSettings.vibe) lines.push(`느낌/분위기: ${currentSettings.vibe}`);
+    if (currentSettings.era) lines.push(`시대감: ${currentSettings.era}`);
     if (currentSettings.texture) lines.push(`질감: ${currentSettings.texture}`);
     if (currentSettings.tempo) lines.push(`템포: ${currentSettings.tempo}`);
-    if (currentSettings.reverb) lines.push(`리버브: ${currentSettings.reverb}`);
     if (currentSettings.instruments) lines.push(`악기: ${currentSettings.instruments}`);
-    if (currentSettings.vocal) lines.push(`보컬: ${currentSettings.vocal}`);
     return lines.join("\n");
   };
 
-  // 가사 생성 프롬프트 — 모든 설정을 유기적으로 반영
-  const buildLyricsPrompt = () => {
-    // 보컬 프로필 명령어 추출
-    const vocalCommands = lyricsContent.split("\n").filter((l: string) => l.startsWith("[")).join("\n");
+  // 가사 프롬프트 조합
+  const buildFullPrompt = () => {
+    const selectedForm = SONG_FORMS[songForm];
+    const selectedArc = EMOTION_ARCS[emotionArc];
+    const selectedDensity = DENSITY_OPTIONS.find((d) => d.value === density)!;
+    const langLabel = language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어 + English 믹스";
 
     return [
       `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
@@ -97,39 +125,41 @@ export default function LyricsSection({
       `=== 가사 작성 규칙 ===`,
       LYRICS_RULES,
       ``,
-      `=== 사용자 설정 (이 설정이 가사의 톤/무드/어휘/리듬을 결정) ===`,
+      `=== 곡 설정 (사운드 방향) ===`,
       buildSettingsSummary(),
       ``,
-      `=== Style of Music (생성된 사운드 방향 — 가사의 리듬감과 밀도 참고) ===`,
+      `=== Style of Music (생성 완료된 스타일 — 가사의 리듬감/밀도 참고) ===`,
       style,
       ``,
-      `=== VOCAL PROFILE (보컬 설정 — 가사 상단에 그대로 포함) ===`,
-      vocalCommands,
+      `=== VOCAL PROFILE (가사 최상단에 그대로 포함할 것) ===`,
+      vocalProfileLines,
       ``,
-      `=== 중요 지침 ===`,
-      `1. 위 VOCAL PROFILE 명령어를 가사 맨 위에 그대로 포함해라.`,
-      `2. 장르에 맞는 어휘와 리듬감으로 작성해라:`,
-      `   - 힙합/랩: 라임, 펀치라인, 플로우 강화`,
-      `   - 발라드: 감정적 서사, 긴 호흡의 서정적 문장`,
-      `   - R&B: 리듬감 있는 반복, 그루브 있는 프레이징`,
-      `   - EDM/댄스: 짧고 반복적인 훅, 에너지 상승 구조`,
-      `   - 록: 선언적이고 강렬한 문장, 파워풀한 코러스`,
-      `3. 시대감을 어휘에 반영해라 (90s → 아날로그 감성, 2020s → 트렌디한 표현)`,
-      `4. 느낌/분위기가 가사 전체 톤을 지배해야 한다.`,
-      `5. 보컬 딜리버리에 맞는 문장 길이와 호흡을 설계해라.`,
+      `=== 가사 구조 설정 ===`,
+      `가사 언어: ${langLabel}`,
+      `송폼 구조: ${selectedForm.value}`,
+      `가사 밀도: ${selectedDensity.desc}`,
+      `감정 흐름: ${selectedArc.value}`,
       ``,
-      `가사 언어: ${language === "ko" ? "한국어" : language === "en" ? "English" : language === "ja" ? "日本語" : "한국어 + English 믹스"}`,
+      `=== 장르별 작법 가이드 ===`,
+      `- 힙합/랩: 라임 밀도 높게, 펀치라인 필수, 플로우 변주`,
+      `- 발라드: 감정적 서사, 긴 호흡, 서정적 이미지`,
+      `- R&B: 리듬감 있는 프레이징, 그루브 반복, 허밍 가능한 멜로디`,
+      `- EDM/댄스: 짧은 반복 훅, 에너지 상승 구조, 챈트 가능`,
+      `- 록: 선언적이고 강렬한 문장, 파워풀한 코러스`,
+      `- 트로트: 직설적 감정, 반복되는 후렴, 대중적 어휘`,
       ``,
-      `VOCAL PROFILE 명령어를 맨 위에 두고, 그 아래에 섹션별 메타데이터 + 가사를 이어서 출력.`,
-      `코드블록 없이 텍스트만 출력해.`,
+      `=== 출력 형식 ===`,
+      `1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`,
+      `2. 각 섹션: [SECTION: 이름] + [VOCAL_PROMPT: ...] + [LAYER: ...] + [Texture: ...] + 가사`,
+      `3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER의 강도를 섹션마다 변화시킬 것`,
+      `4. 코드블록 없이 텍스트만 출력`,
+      `5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태로 출력`,
     ].join("\n");
   };
 
-  // Claude.ai에서 가사 생성
-  const handleOpenClaude = async () => {
-    const prompt = buildLyricsPrompt();
-
-    // 프롬프트 클립보드 복사
+  // 프롬프트 복사
+  const handleCopyPrompt = async () => {
+    const prompt = buildFullPrompt();
     try {
       await navigator.clipboard.writeText(prompt);
     } catch {
@@ -140,74 +170,41 @@ export default function LyricsSection({
       document.execCommand("copy");
       document.body.removeChild(textarea);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
 
-    // 화면 나란히 배치
+  // 프롬프트 복사 + Claude.ai 열기
+  const handleCopyAndOpen = async () => {
+    await handleCopyPrompt();
     try {
       const halfW = Math.floor(screen.width / 2);
       window.moveTo(0, 0);
       window.resizeTo(halfW, screen.height);
     } catch { /* 브라우저 제한 */ }
-
     const halfW = Math.floor(screen.width / 2);
     window.open("https://claude.ai/new", "claude-lyrics", `width=${halfW},height=${screen.height},left=${halfW},top=0`);
-
-    // 붙여넣기 모드로 전환
-    setPasteMode(true);
   };
-
-  // 붙여넣은 가사 적용
-  const handleApplyPasted = () => {
-    if (pastedLyrics.trim()) {
-      onLyricsUpdate?.(pastedLyrics);
-      setHasCustomLyrics(true);
-      setSettingsChanged(false);
-      settingsSnapshotRef.current = JSON.stringify(currentSettings || {});
-      setPasteMode(false);
-      setPastedLyrics("");
-    }
-  };
-
-  // 보컬 프로필 부분만 추출 ([] 명령어들)
-  const vocalProfileLines = lyricsContent.split("\n").filter((l) => l.startsWith("[")).slice(0, 9);
-  // 가사 본문 부분 추출 (보컬 프로필 이후)
-  const lyricsBodyStart = lyricsContent.indexOf("\n[SECTION:");
-  const lyricsBody = lyricsBodyStart > -1 ? lyricsContent.slice(lyricsBodyStart) : "";
 
   return (
     <div style={{ border: "1px solid #e5e5e5", borderRadius: "16px", overflow: "hidden" }}>
       {/* 헤더 */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics</h3>
-          <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>Suno Lyrics 필드에 붙여넣기</p>
-        </div>
-        <div style={{ display: "flex", gap: "6px" }}>
-          {lyricsBody && (
-            <button
-              onClick={handleCopy}
-              style={{
-                padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
-                backgroundColor: copied ? "#fff7ed" : "#fff",
-                color: copied ? "#f97316" : "#a3a3a3",
-                border: copied ? "1px solid rgba(249,115,22,0.3)" : "1px solid #e5e5e5",
-                cursor: "pointer",
-              }}
-            >
-              {copied ? "복사됨" : "복사"}
-            </button>
-          )}
-        </div>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <h3 style={{ fontSize: "14px", fontWeight: 700 }}>Lyrics 프롬프트 생성기</h3>
+        <p style={{ fontSize: "11px", color: "#a3a3a3", marginTop: "2px" }}>
+          설정을 선택하면 가사 생성 프롬프트가 조합됩니다
+        </p>
       </div>
 
-      {/* 언어 선택 */}
+      {/* 1. 가사 언어 */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <p style={{ fontSize: "12px", fontWeight: 600, marginBottom: "8px" }}>가사 언어</p>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Language</p>
         <div style={{ display: "flex", gap: "6px" }}>
           {[
             { label: "한국어", value: "ko" },
             { label: "English", value: "en" },
             { label: "日本語", value: "ja" },
-            { label: "한국어 + English", value: "mixed" },
+            { label: "KO + EN", value: "mixed" },
           ].map((lang) => (
             <button
               key={lang.value}
@@ -227,183 +224,199 @@ export default function LyricsSection({
         </div>
       </div>
 
-      {/* 보컬 프로필 — 설정에 따라 자동 업데이트 */}
-      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5", backgroundColor: "#fafafa" }}>
-        <p style={{ fontSize: "10px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-          Vocal Profile — 설정에 따라 자동 반영
+      {/* 2. 가사 밀도 */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Density</p>
+        <div style={{ display: "flex", gap: "6px" }}>
+          {DENSITY_OPTIONS.map((d) => (
+            <button
+              key={d.value}
+              onClick={() => setDensity(d.value)}
+              style={{
+                flex: 1, padding: "10px 8px", borderRadius: "12px", fontSize: "12px",
+                fontWeight: density === d.value ? 600 : 400,
+                backgroundColor: density === d.value ? "#0a0a0a" : "#fff",
+                color: density === d.value ? "#fff" : "#a3a3a3",
+                border: density === d.value ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer", textAlign: "center",
+              }}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+        <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px" }}>
+          {DENSITY_OPTIONS.find((d) => d.value === density)?.desc}
         </p>
-        <pre style={{ fontSize: "11px", color: "#525252", fontFamily: "monospace", whiteSpace: "pre-wrap", lineHeight: "1.6" }}>
-          {vocalProfileLines.join("\n")}
-        </pre>
       </div>
 
-      {/* 설정 변경 알림 */}
-      {settingsChanged && hasCustomLyrics && (
-        <div style={{ padding: "12px 20px", backgroundColor: "#fffbeb", borderBottom: "1px solid #fde68a", display: "flex", alignItems: "center", gap: "8px" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-          <p style={{ fontSize: "11px", color: "#92400e" }}>설정이 변경되었습니다. 가사를 다시 생성하면 새 설정이 반영됩니다.</p>
+      {/* 3. 송폼 구조 */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Song Form</p>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {SONG_FORMS.map((form, i) => (
+            <button
+              key={form.label}
+              onClick={() => setSongForm(i)}
+              style={{
+                flex: 1, minWidth: "70px", padding: "10px 8px", borderRadius: "12px", fontSize: "12px",
+                fontWeight: songForm === i ? 600 : 400,
+                backgroundColor: songForm === i ? "#0a0a0a" : "#fff",
+                color: songForm === i ? "#fff" : "#a3a3a3",
+                border: songForm === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer", textAlign: "center",
+              }}
+            >
+              {form.label}
+            </button>
+          ))}
         </div>
-      )}
+        <p style={{ fontSize: "10px", color: "#a3a3a3", marginTop: "6px", fontFamily: "monospace" }}>
+          {SONG_FORMS[songForm].desc}
+        </p>
+      </div>
 
-      {/* 메인 영역 */}
+      {/* 4. 보컬 스타일 */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "10px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Vocal Style</p>
+
+        {/* 음역 */}
+        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>음역</p>
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {VOICE_TYPES.map((v, i) => (
+            <button key={v.label} onClick={() => setVoiceType(i)}
+              style={{
+                padding: "6px 12px", borderRadius: "9999px", fontSize: "11px",
+                fontWeight: voiceType === i ? 600 : 400,
+                backgroundColor: voiceType === i ? "#0a0a0a" : "#fff",
+                color: voiceType === i ? "#fff" : "#a3a3a3",
+                border: voiceType === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer",
+              }}>
+              {v.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 음색 */}
+        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>음색</p>
+        <div style={{ display: "flex", gap: "4px", marginBottom: "12px", flexWrap: "wrap" }}>
+          {TIMBRES.map((t, i) => (
+            <button key={t.label} onClick={() => setTimbre(i)}
+              style={{
+                padding: "6px 12px", borderRadius: "9999px", fontSize: "11px",
+                fontWeight: timbre === i ? 600 : 400,
+                backgroundColor: timbre === i ? "#0a0a0a" : "#fff",
+                color: timbre === i ? "#fff" : "#a3a3a3",
+                border: timbre === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer",
+              }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 딜리버리 */}
+        <p style={{ fontSize: "10px", fontWeight: 600, color: "#737373", marginBottom: "6px" }}>딜리버리</p>
+        <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+          {DELIVERIES.map((d, i) => (
+            <button key={d.label} onClick={() => setDelivery(i)}
+              style={{
+                padding: "6px 12px", borderRadius: "9999px", fontSize: "11px",
+                fontWeight: delivery === i ? 600 : 400,
+                backgroundColor: delivery === i ? "#0a0a0a" : "#fff",
+                color: delivery === i ? "#fff" : "#a3a3a3",
+                border: delivery === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer",
+              }}>
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. 감정 흐름 */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
+        <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Emotion Arc</p>
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {EMOTION_ARCS.map((arc, i) => (
+            <button
+              key={arc.label}
+              onClick={() => setEmotionArc(i)}
+              style={{
+                flex: 1, minWidth: "70px", padding: "10px 8px", borderRadius: "12px", fontSize: "12px",
+                fontWeight: emotionArc === i ? 600 : 400,
+                backgroundColor: emotionArc === i ? "#0a0a0a" : "#fff",
+                color: emotionArc === i ? "#fff" : "#a3a3a3",
+                border: emotionArc === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5",
+                cursor: "pointer", textAlign: "center",
+              }}
+            >
+              {arc.label}
+            </button>
+          ))}
+        </div>
+        {/* 에너지 시각화 바 */}
+        <div style={{ display: "flex", gap: "3px", alignItems: "flex-end", height: "40px", marginTop: "10px", padding: "0 4px" }}>
+          {EMOTION_ARCS[emotionArc].bars.map((h, i) => (
+            <div key={i} style={{
+              flex: 1, height: `${h * 7}px`,
+              backgroundColor: h >= 4 ? "#f97316" : h >= 2 ? "#fdba74" : "#fed7aa",
+              borderRadius: "3px",
+              transition: "height 0.3s ease, background-color 0.3s ease",
+            }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px", padding: "0 4px" }}>
+          <span style={{ fontSize: "9px", color: "#d4d4d4" }}>Verse</span>
+          <span style={{ fontSize: "9px", color: "#d4d4d4" }}>Chorus</span>
+          <span style={{ fontSize: "9px", color: "#d4d4d4" }}>Bridge</span>
+          <span style={{ fontSize: "9px", color: "#d4d4d4" }}>Outro</span>
+        </div>
+      </div>
+
+      {/* 프롬프트 생성 버튼 */}
       <div style={{ padding: "20px" }}>
-        {pasteMode ? (
-          // Claude.ai에서 생성 후 붙여넣기
-          <div>
-            <div style={{ padding: "16px", backgroundColor: "#f0fdf4", borderRadius: "12px", marginBottom: "16px" }}>
-              <p style={{ fontSize: "13px", fontWeight: 700, color: "#16a34a", marginBottom: "8px" }}>프롬프트가 복사되었습니다!</p>
-              <ol style={{ fontSize: "12px", color: "#525252", lineHeight: "2", paddingLeft: "20px", margin: 0 }}>
-                <li>오른쪽 <strong>Claude.ai</strong> 채팅창에 <strong>Ctrl+V</strong></li>
-                <li>Claude가 가사를 생성하면 <strong>전체 선택 → 복사</strong></li>
-                <li>아래 입력창에 <strong>붙여넣기</strong></li>
-              </ol>
+        {copied ? (
+          <div style={{ textAlign: "center", padding: "12px 0" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", backgroundColor: "#f0fdf4", borderRadius: "12px", border: "1px solid #bbf7d0" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "#16a34a" }}>프롬프트 복사됨!</span>
             </div>
-
-            <textarea
-              value={pastedLyrics}
-              onChange={(e) => setPastedLyrics(e.target.value)}
-              placeholder="Claude에서 생성된 가사를 여기에 붙여넣으세요..."
-              style={{
-                width: "100%", minHeight: "200px", border: "1px solid #e5e5e5", borderRadius: "12px",
-                padding: "12px", fontSize: "12px", fontFamily: "monospace", resize: "vertical", outline: "none",
-              }}
-            />
-            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-              <button
-                onClick={handleApplyPasted}
-                disabled={!pastedLyrics.trim()}
-                style={{
-                  flex: 1, padding: "12px", borderRadius: "12px",
-                  backgroundColor: pastedLyrics.trim() ? "#f97316" : "#e5e5e5",
-                  color: pastedLyrics.trim() ? "#fff" : "#a3a3a3",
-                  fontSize: "13px", fontWeight: 700, border: "none",
-                  cursor: pastedLyrics.trim() ? "pointer" : "not-allowed",
-                }}
-              >
-                가사 적용하기
-              </button>
-              <button
-                onClick={() => setPasteMode(false)}
-                style={{ padding: "12px 16px", borderRadius: "12px", border: "1px solid #e5e5e5", backgroundColor: "#fff", fontSize: "12px", color: "#737373", cursor: "pointer" }}
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        ) : isEditing ? (
-          // 직접 편집 모드
-          <div>
-            <textarea
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              style={{
-                width: "100%", minHeight: "400px", border: "1px solid #e5e5e5", borderRadius: "12px",
-                padding: "16px", fontSize: "12px", fontFamily: "monospace", resize: "vertical",
-                outline: "none", lineHeight: "1.7",
-              }}
-            />
-            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-              <button onClick={handleSave}
-                style={{ padding: "10px 20px", borderRadius: "10px", backgroundColor: "#0a0a0a", color: "#fff", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer" }}>
-                저장
-              </button>
-              <button onClick={() => { setEditValue(lyricsContent); setIsEditing(false); }}
-                style={{ padding: "10px 20px", borderRadius: "10px", border: "1px solid #e5e5e5", backgroundColor: "#fff", fontSize: "12px", color: "#737373", cursor: "pointer" }}>
-                취소
-              </button>
-            </div>
+            <p style={{ fontSize: "11px", color: "#737373", marginTop: "8px" }}>
+              Claude.ai에 붙여넣기 → 생성된 가사를 Suno Lyrics에 직접 붙여넣기
+            </p>
           </div>
         ) : (
-          // 가사 보기 + 생성 버튼
-          <div>
-            {lyricsBody ? (
-              <div>
-                <pre style={{
-                  fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap",
-                  lineHeight: "1.7", fontFamily: "monospace",
-                  maxHeight: "400px", overflowY: "auto",
-                }}>
-                  {lyricsBody.trim()}
-                </pre>
-                <div style={{ display: "flex", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
-                  <button onClick={handleOpenClaude}
-                    style={{
-                      padding: "10px 20px", borderRadius: "10px",
-                      backgroundColor: "#f97316", color: "#fff",
-                      fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: "6px",
-                    }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                    {hasCustomLyrics ? "가사 다시 생성" : "AI 가사 생성"}
-                  </button>
-                  <button onClick={() => setIsEditing(true)}
-                    style={{ padding: "10px 20px", borderRadius: "10px", border: "1px solid #e5e5e5", backgroundColor: "#fff", fontSize: "12px", color: "#737373", cursor: "pointer" }}>
-                    직접 편집
-                  </button>
-                </div>
-              </div>
-            ) : (
-              // 가사가 없을 때
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <p style={{ fontSize: "13px", color: "#525252", marginBottom: "16px" }}>
-                  위 설정을 바탕으로 Claude가 가사를 생성합니다
-                </p>
-                <button onClick={handleOpenClaude}
-                  style={{
-                    padding: "14px 32px", borderRadius: "12px",
-                    backgroundColor: "#f97316", color: "#fff",
-                    fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
-                    display: "inline-flex", alignItems: "center", gap: "8px",
-                  }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                  </svg>
-                  AI 가사 생성
-                </button>
-              </div>
-            )}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            <button
+              onClick={handleCopyAndOpen}
+              style={{
+                padding: "14px", borderRadius: "12px", backgroundColor: "#f97316",
+                color: "#fff", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              프롬프트 복사 + Claude.ai 열기
+            </button>
+            <button
+              onClick={handleCopyPrompt}
+              style={{
+                padding: "10px", borderRadius: "12px", backgroundColor: "#fff",
+                color: "#737373", fontSize: "12px", fontWeight: 500,
+                border: "1px solid #e5e5e5", cursor: "pointer",
+              }}
+            >
+              프롬프트만 복사
+            </button>
           </div>
         )}
       </div>
-
-      {/* 비슷한 곡 더 만들기 */}
-      {onGenerateVariation && (
-        <div style={{ borderTop: "1px solid #e5e5e5", padding: "20px", background: "#fafafa" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-            <div style={{
-              width: "40px", height: "40px", borderRadius: "12px",
-              backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </div>
-            <div>
-              <p style={{ fontSize: "14px", fontWeight: 700, color: "#0a0a0a" }}>
-                Track {trackNumber + 1} — 비슷한 곡 하나 더?
-              </p>
-              <p style={{ fontSize: "11px", color: "#737373" }}>
-                같은 톤 & 무드, 다른 변주. 앨범처럼 이어지는 플레이리스트.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onGenerateVariation}
-            style={{
-              width: "100%", padding: "12px", borderRadius: "12px",
-              backgroundColor: "#0a0a0a", color: "#fff",
-              fontSize: "13px", fontWeight: 700, border: "none", cursor: "pointer",
-            }}
-          >
-            비슷한 느낌으로 다음 곡 생성하기 →
-          </button>
-        </div>
-      )}
     </div>
   );
 }
