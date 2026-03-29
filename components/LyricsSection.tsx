@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { buildLyricsRules, DEFAULT_BANNED_WORDS } from "@/lib/lyricsRules";
+import { buildProsePoetryPrompt } from "@/lib/essayEngine";
 import { Provider } from "./ApiKeyGate";
 import LyricsPostProcess from "./LyricsPostProcess";
 
@@ -289,24 +290,32 @@ export default function LyricsSection({
     if (currentSettings?.instruments) settingsLines.push(`악기: ${currentSettings.instruments}`);
     if (currentSettings?.reverb) settingsLines.push(`리버브: ${currentSettings.reverb}`);
 
-    const parts = [
-      `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
-    ];
+    const parts: string[] = [];
 
-    // 핵심 문장 브레인스토밍 지침
+    // STEP 1: 산문시 생성 (가사의 원재료)
     if (coreMessage.trim()) {
+      parts.push(buildProsePoetryPrompt(
+        coreMessage.trim(),
+        genre,
+        lyricsLang,
+        reference.trim() && refAnalysis ? `레퍼런스 "${reference.trim()}" 분석:\n${refAnalysis}` : undefined
+      ));
       parts.push(``);
-      parts.push(`=== 핵심 문장 브레인스토밍 (가장 중요) ===`);
-      parts.push(`"${coreMessage.trim()}"`);
-      parts.push(``);
-      parts.push(`이 핵심 문장을 아래 7가지 관점으로 해석하고, 가사 전체에 반영해라:`);
-      parts.push(`1. 씨드 이미지 — 이 문장에서 가장 강렬한 시각적 이미지 1개를 뽑아 곡 전체의 모티프로 사용`);
-      parts.push(`2. 감정 방향 — 이 문장이 품고 있는 감정의 정체와 온도를 파악해 Verse→Chorus→Bridge 감정 곡선에 반영`);
-      parts.push(`3. 장면 고정 — 이 문장이 발화되는 물리적 공간/상황 1개를 설정하고 곡 전체의 배경으로 고정`);
-      parts.push(`4. Hook 후보 — 이 문장을 4~10음절로 압축해 Hook Core Line 후보를 만들어라. 원문 그대로 써도 되고, 핵심만 뽑아도 됨`);
-      parts.push(`5. 대립 축 — 이 문장에 숨은 대립(과거/현재, 나/너, 말/침묵, 움직임/정지 등)을 찾아 대구법의 축으로 활용`);
-      parts.push(`6. 서사 기점 — 이 문장이 곡의 어느 지점인지 판단해라: 시작(설정)인지, 중간(갈등)인지, 끝(결말)인지. 그에 맞게 서사를 앞뒤로 확장`);
-      parts.push(`7. 금지어 연상 차단 — 이 문장에서 연상되는 클리셰(금지 표현 목록 참조)를 의식적으로 피하고, 예상 밖의 이미지로 전개`);
+    }
+
+    // STEP 2: 산문시 → 가사 변환
+    parts.push(`=== STEP 2: 산문시 → 가사 추출 ===`);
+    parts.push(`위 산문시를 원재료로 삼아, 아래 규칙에 따라 Suno v5.5용 가사를 추출해라.`);
+    parts.push(`산문시의 서사, 훅 후보, 모티프, 수사법, 운율을 최대한 살려서 가사로 변환해라.`);
+    parts.push(`장르가 "${genre}"이므로, 이 장르의 가사 특성에 맞게 추출해라:`);
+    parts.push(`- 음절 수, 문장 길이, 반복 패턴, 애드립, 리듬감을 장르에 맞춰 조절`);
+    parts.push(`- 산문시에서 가장 강한 구절을 Hook/Chorus로 배치`);
+    parts.push(`- 산문시의 서사 흐름을 Verse→Chorus→Bridge 구조에 매핑`);
+    parts.push(``);
+
+    // 핵심 문장이 없으면 기존 방식
+    if (!coreMessage.trim()) {
+      parts.push(`아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`);
     }
 
     parts.push(``);
@@ -1108,7 +1117,37 @@ density: short/medium/long 중`,
               fontSize: "12px", color: "#0a0a0a", whiteSpace: "pre-wrap", lineHeight: "1.7",
               fontFamily: "monospace", maxHeight: "400px", overflowY: "auto",
               padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5",
-            }}>{generatedLyrics}</pre>
+            }}>{(() => {
+              // 산문시 부분 제거하고 가사만 표시
+              const cleaned = generatedLyrics
+                .replace(/---PROSE---[\s\S]*?---END_PROSE---\n*/g, "")
+                .replace(/^=== STEP [12][\s\S]*?(?=\[VOCAL_PROFILE|\[SECTION|$)/gm, "")
+                .trim();
+              return cleaned || generatedLyrics;
+            })()}</pre>
+
+            {/* 산문시 보기 (접기/펼치기) */}
+            {generatedLyrics.includes("---PROSE---") && (() => {
+              const match = generatedLyrics.match(/---PROSE---\n?([\s\S]*?)---END_PROSE---/);
+              if (!match) return null;
+              return (
+                <details style={{ marginTop: "8px" }}>
+                  <summary style={{
+                    fontSize: "11px", fontWeight: 600, color: "#f97316", cursor: "pointer",
+                    padding: "8px 12px", backgroundColor: "#fff7ed", borderRadius: "10px",
+                    border: "1px solid #fed7aa", userSelect: "none",
+                  }}>
+                    산문시 원본 보기 (가사의 원재료)
+                  </summary>
+                  <pre style={{
+                    fontSize: "12px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.8",
+                    fontFamily: "inherit", padding: "16px", backgroundColor: "#fffbeb",
+                    borderRadius: "0 0 12px 12px", border: "1px solid #fed7aa", borderTop: "none",
+                    maxHeight: "300px", overflowY: "auto",
+                  }}>{match[1].trim()}</pre>
+                </details>
+              );
+            })()}
 
             {/* 후처리 패널 — 클리셰 감지 + AI 채점 */}
             <LyricsPostProcess
