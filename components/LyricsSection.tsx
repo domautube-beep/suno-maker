@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { buildLyricsRules, DEFAULT_BANNED_WORDS } from "@/lib/lyricsRules";
 import { Provider } from "./ApiKeyGate";
+import LyricsPostProcess from "./LyricsPostProcess";
 
 interface LyricsSectionProps {
   lyricsContent: string;
@@ -373,8 +374,10 @@ export default function LyricsSection({
 
     parts.push(`=== 출력 ===`);
     parts.push(`1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`);
-    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사. 메타데이터는 태그 3~5개로 짧게 (긴 문장 금지)`);
-    parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER 강도를 섹션마다 변화`);
+    parts.push(`2. 각 섹션 헤더를 한 줄로 작성: [섹션명: 악기편성 + 보컬스타일 + 텍스처 — 핵심만 압축]`);
+    parts.push(`   예시: [Verse 1: Intimate lead vocal, dry piano, soft stomp drum — close-mic delivery]`);
+    parts.push(`   예시: [Chorus: Full band, wide stereo strings, brass, electric guitar — group belt]`);
+    parts.push(`3. 헤더 아래에 가사만 (브라켓 밖). 감정 흐름에 따라 편곡 강도를 섹션마다 변화`);
     parts.push(`4. 코드블록 없이 텍스트만 출력`);
     parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
 
@@ -1098,6 +1101,21 @@ density: short/medium/long 중`,
               fontFamily: "monospace", maxHeight: "400px", overflowY: "auto",
               padding: "16px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5",
             }}>{generatedLyrics}</pre>
+
+            {/* 후처리 패널 — 클리셰 감지 + AI 채점 */}
+            <LyricsPostProcess
+              lyrics={generatedLyrics}
+              apiKey={apiKey}
+              provider={provider}
+              onUpdate={(newLyrics) => {
+                setGeneratedLyrics(newLyrics);
+                // 현재 트랙도 업데이트
+                setTracks((prev) =>
+                  prev.map((t, i) => i === activeTrack ? { ...t, lyrics: newLyrics } : t)
+                );
+                onLyricsUpdate?.(newLyrics);
+              }}
+            />
 
             {/* 작법 기법 태그 토글 */}
             <div style={{ marginTop: "16px", padding: "16px", backgroundColor: "#fff", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
