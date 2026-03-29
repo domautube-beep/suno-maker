@@ -110,22 +110,40 @@ export default function GenreSelector({ onSubmit, onSkip, oneLiner = "" }: Genre
             추천 장르
           </p>
           <div className="flex flex-wrap gap-1.5">
-            {Array.from(recommended).slice(0, 6).map((genre) => (
-              <button
-                key={genre}
-                onClick={() => toggleOption(genre)}
-                title={GENRE_DESCRIPTIONS[genre] || ""}
-                style={{
-                  backgroundColor: "#fff7ed",
-                  color: "#f97316",
-                  borderColor: "#f97316",
-                  animation: "pulse-recommend 2s ease-in-out infinite",
-                }}
-                className="px-4 py-2 rounded-full text-xs font-medium border transition-all"
-              >
-                {genre}
-              </button>
-            ))}
+            {Array.from(recommended).slice(0, 6).map((genre) => {
+              const desc = GENRE_DESCRIPTIONS[genre];
+              return (
+                <div key={genre} className="genre-tip-wrap" style={{ position: "relative", display: "inline-block" }}>
+                  <button
+                    onClick={() => toggleOption(genre)}
+                    style={{
+                      backgroundColor: "#fff7ed",
+                      color: "#f97316",
+                      borderColor: "#f97316",
+                      animation: "pulse-recommend 2s ease-in-out infinite",
+                    }}
+                    className="px-4 py-2 rounded-full text-xs font-medium border transition-all"
+                  >
+                    {genre}
+                  </button>
+                  {desc && (
+                    <div className="genre-tip" style={{
+                      position: "absolute", bottom: "calc(100% + 6px)", left: "0",
+                      backgroundColor: "#0a0a0a", color: "#fff", borderRadius: "8px",
+                      padding: "6px 10px", fontSize: "10px", lineHeight: "1.4",
+                      whiteSpace: "nowrap", zIndex: 50, pointerEvents: "none",
+                      opacity: 0, transition: "opacity 0.15s",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    }}>
+                      {desc}
+                      <div style={{ position: "absolute", bottom: "-4px", left: "12px",
+                        width: "8px", height: "8px", backgroundColor: "#0a0a0a",
+                        transform: "rotate(45deg)" }} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
           <p style={{ fontSize: "10px", color: "#a3a3a3" }}>
             또는 아래에서 직접 골라보세요
@@ -163,21 +181,37 @@ export default function GenreSelector({ onSubmit, onSkip, oneLiner = "" }: Genre
             {GENRE_CATEGORIES.find((c) => c.id === expandedCat)?.options.map((opt) => {
               const isSelected = selected.includes(opt);
               const isRecommended = recommended.has(opt) && !isSelected;
+              const desc = GENRE_DESCRIPTIONS[opt];
               return (
-                <button
-                  key={opt}
-                  onClick={() => toggleOption(opt)}
-                  title={GENRE_DESCRIPTIONS[opt] || ""}
-                  style={{
-                    backgroundColor: isSelected ? "#0a0a0a" : "#ffffff",
-                    color: isSelected ? "#ffffff" : isRecommended ? "#f97316" : "#737373",
-                    borderColor: isSelected ? "#0a0a0a" : isRecommended ? "#f97316" : "#e5e5e5",
-                    animation: isRecommended ? "pulse-recommend 2s ease-in-out infinite" : "none",
-                  }}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:border-gray-400"
-                >
-                  {opt}
-                </button>
+                <div key={opt} className="genre-tip-wrap" style={{ position: "relative", display: "inline-block" }}>
+                  <button
+                    onClick={() => toggleOption(opt)}
+                    style={{
+                      backgroundColor: isSelected ? "#0a0a0a" : "#ffffff",
+                      color: isSelected ? "#ffffff" : isRecommended ? "#f97316" : "#737373",
+                      borderColor: isSelected ? "#0a0a0a" : isRecommended ? "#f97316" : "#e5e5e5",
+                      animation: isRecommended ? "pulse-recommend 2s ease-in-out infinite" : "none",
+                    }}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all hover:border-gray-400"
+                  >
+                    {opt}
+                  </button>
+                  {desc && (
+                    <div className="genre-tip" style={{
+                      position: "absolute", bottom: "calc(100% + 6px)", left: "0",
+                      backgroundColor: "#0a0a0a", color: "#fff", borderRadius: "8px",
+                      padding: "6px 10px", fontSize: "10px", lineHeight: "1.4",
+                      whiteSpace: "nowrap", zIndex: 50, pointerEvents: "none",
+                      opacity: 0, transition: "opacity 0.15s",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    }}>
+                      {desc}
+                      <div style={{ position: "absolute", bottom: "-4px", left: "12px",
+                        width: "8px", height: "8px", backgroundColor: "#0a0a0a",
+                        transform: "rotate(45deg)" }} />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -222,6 +256,9 @@ export default function GenreSelector({ onSubmit, onSkip, oneLiner = "" }: Genre
         @keyframes pulse-recommend {
           0%, 100% { opacity: 1; border-color: #f97316; }
           50% { opacity: 0.5; border-color: #fdba74; }
+        }
+        .genre-tip-wrap:hover .genre-tip {
+          opacity: 1 !important;
         }
       `}</style>
     </div>
