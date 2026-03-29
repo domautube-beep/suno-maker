@@ -563,6 +563,68 @@ ${output.style}
                   onRegenerateStyle={() => { return generateStyle(currentInputs as Record<string, string>); }}
                   autoGenerate={autoLyrics}
                 />
+
+                {/* AI 지침 복사 버튼 */}
+                <div style={{ padding: "16px 20px", borderTop: "1px solid #e5e5e5" }}>
+                  <button
+                    onClick={async () => {
+                      const inputs = currentInputs as Record<string, string>;
+                      const inputSummary = Object.entries(inputs)
+                        .filter(([, v]) => v)
+                        .map(([k, v]) => `- ${k}: ${v}`)
+                        .join("\n");
+
+                      const instruction = `아래 설정대로 Suno AI v5.5용 프롬프트를 생성해줘.
+
+=== 사용자 설정 ===
+${inputSummary}
+
+=== 요청사항 ===
+1. Style of Music 프롬프트 (850~900자 내외)
+   - 장르→템포→드럼→베이스→멜로디→질감→보컬→전개 순서로 작성
+   - 장르/시대감 충돌 없이 일관되게
+   - 마지막에 이 곡이 추구하는 느낌/감정/장면을 한 문장으로 요약
+2. Exclude Styles (제외할 스타일)
+3. 가사 (Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태)
+   - VOCAL PROFILE을 맨 위에 배치
+   - 각 섹션: [SECTION: 섹션명] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사
+   - 훅 반복 필수, 감정은 솔직하게, 일상 감성 + 반발짝 창의성
+   - 모티프: 주제 속에서 발견/관찰/인사이트가 있는 것을 찾아 수사법으로 전개
+   - 랩 장르일 경우: 주제→소재 파생→라임 문장→대구 조합→펀치라인 + 애드립/추임새${output.style ? `
+
+=== 현재 Style of Music (참고용) ===
+${output.style}` : ""}${output.lyrics ? `
+
+=== 현재 가사 (참고용) ===
+${output.lyrics}` : ""}`;
+
+                      await navigator.clipboard.writeText(instruction);
+                      const btn = document.getElementById("copy-instruction-btn");
+                      if (btn) {
+                        btn.textContent = "복사되었습니다. 다른 AI 서비스에 붙이세요.";
+                        btn.style.backgroundColor = "#16a34a";
+                        btn.style.color = "#fff";
+                        setTimeout(() => {
+                          btn.textContent = "AI 지침 복사하기";
+                          btn.style.backgroundColor = "#fff";
+                          btn.style.color = "#0a0a0a";
+                        }, 3000);
+                      }
+                    }}
+                    id="copy-instruction-btn"
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: "12px",
+                      backgroundColor: "#fff", color: "#0a0a0a",
+                      border: "1px solid #d4d4d4", fontSize: "13px", fontWeight: 600,
+                      cursor: "pointer", transition: "all 0.2s",
+                    }}
+                  >
+                    AI 지침 복사하기
+                  </button>
+                  <p style={{ fontSize: "10px", color: "#a3a3a3", textAlign: "center", marginTop: "6px" }}>
+                    GPT, Claude 등 다른 AI에 붙여넣어 같은 곡을 만들 수 있습니다
+                  </p>
+                </div>
                   </>
                 )}
               </div>
