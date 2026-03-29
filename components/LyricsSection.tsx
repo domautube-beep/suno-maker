@@ -734,12 +734,25 @@ export default function LyricsSection({
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                      prompt: `"${reference.trim()}" 이 곡의 가사를 분석해줘. 아래 4가지만 간결하게:
-1. 구조: Verse/Chorus/Bridge 각 역할과 서사 전개 방식
-2. 진행법: 감정 흐름, Verse→Chorus 트리거, Hook 기억법
-3. 작성법: 수사법, 줄 길이 패턴, 단어 수준
-4. 특징: 이 곡만의 독특한 가사 특징 1~2줄
-각 항목 2~3줄로. 한국어로. 총 200자 이내.`,
+                      prompt: `"${reference.trim()}" 이 곡을 분석해줘.
+
+파트1 — 가사 분석 (한국어, 각 항목 2~3줄):
+1. 구조: Verse/Chorus/Bridge 각 역할과 서사 전개
+2. 진행법: 감정 흐름, Hook 기억법
+3. 작성법: 수사법, 줄 길이, 단어 수준
+4. 특징: 이 곡만의 독특한 점
+
+파트2 — 설정 추천 (JSON, 마지막에 추가):
+---SETTINGS---
+{"voiceType":0~5,"timbre":0~5,"delivery":0~5,"reverb":0~5,"evolution":0~4,"density":"short/medium/long","emotionArc":0~3,"songForm":"pop/hiphop/rnb/ballad/edm/rock/lofi/trot"}
+voiceType: 0=남저 1=남중 2=남고 3=여저 4=여중 5=여고
+timbre: 0=허스키 1=매끈 2=공기감 3=아날로그 4=파워풀 5=소울풀
+delivery: 0=속삭임→벨팅 1=대화체 2=감정폭발 3=나른한 4=랩플로우 5=일정한힘
+reverb: 0=드라이 1=룸 2=확장형 3=홀 4=빈티지 5=LoFi
+evolution: 0=속삭임→열정 1=일관된힘 2=폭발→침잠 3=점진적상승 4=감정롤러코스터
+emotionArc: 0=잔잔→폭발 1=일정하게 2=폭발→잔잔 3=롤러코스터
+songForm: pop/hiphop/rnb/ballad/edm/rock/lofi/trot 중
+density: short/medium/long 중`,
                       apiKey, provider,
                     }),
                   });
@@ -757,6 +770,35 @@ export default function LyricsSection({
                       if (d === "[DONE]") break;
                       try { const p = JSON.parse(d); if (p.text) { full += p.text; setRefAnalysis(full); } } catch {}
                     }
+                  }
+                  // 설정 자동 채우기
+                  const settingsMatch = full.match(/---SETTINGS---\s*(\{[\s\S]*?\})/);
+                  if (settingsMatch) {
+                    try {
+                      const s = JSON.parse(settingsMatch[1]);
+                      if (typeof s.voiceType === "number") setVpVoice(s.voiceType);
+                      if (typeof s.timbre === "number") setVpTimbre(s.timbre);
+                      if (typeof s.delivery === "number") setVpDelivery(s.delivery);
+                      if (typeof s.reverb === "number") setVpReverb(s.reverb);
+                      if (typeof s.evolution === "number") setVpEvolution(s.evolution);
+                      if (s.density) setDensity(s.density);
+                      if (typeof s.emotionArc === "number") setEmotionArc(s.emotionArc);
+                      if (s.songForm) {
+                        const formMap: Record<string, string[]> = {
+                          pop: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"],
+                          hiphop: ["verse", "hook", "verse", "hook", "bridge", "hook", "outro"],
+                          rnb: ["verse", "hook", "chorus", "verse", "hook", "chorus", "bridge", "chorus", "outro"],
+                          ballad: ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"],
+                          edm: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"],
+                          rock: ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"],
+                          lofi: ["verse", "chorus", "verse", "chorus", "bridge", "outro"],
+                          trot: ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"],
+                        };
+                        setSongFormBlocks(formMap[s.songForm] || formMap.pop);
+                      }
+                      // 분석 텍스트에서 SETTINGS 부분 제거
+                      setRefAnalysis(full.replace(/---SETTINGS---[\s\S]*$/, "").trim());
+                    } catch { /* 파싱 실패 — 분석 텍스트 그대로 유지 */ }
                   }
                 } catch {}
                 setAnalyzingRef(false);
