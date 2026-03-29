@@ -190,6 +190,9 @@ export default function Home() {
     }
   }, [currentInputs, generateStyle]);
 
+  // 퀵스타트 모드 — 스타일 완료 후 가사도 자동 생성
+  const [autoLyrics, setAutoLyrics] = useState(false);
+
   // 대화 완료 → result phase + AI 스타일 생성
   const handleComplete = useCallback((inputs: SunoInput) => {
     const filled = smartFill(inputs);
@@ -199,6 +202,19 @@ export default function Home() {
     setPreviewSections(sections);
 
     setPhase("result");
+    generateStyle(filled as unknown as Record<string, string>);
+  }, [generateStyle]);
+
+  // 퀵스타트: Chat Flow 스킵 + 스타일 + 가사 한방 생성
+  const handleQuickStart = useCallback((inputs: SunoInput) => {
+    const filled = smartFill(inputs);
+    setCurrentInputs(filled);
+
+    const sections = generatePreview(filled);
+    setPreviewSections(sections);
+
+    setPhase("result");
+    setAutoLyrics(true);
     generateStyle(filled as unknown as Record<string, string>);
   }, [generateStyle]);
 
@@ -263,6 +279,7 @@ export default function Home() {
               <ChatFlow
                 key={chatKey}
                 onComplete={handleComplete}
+                onQuickStart={handleQuickStart}
                 onInputChange={handleInputChange}
                 onAutoFill={(settings) => {
                   setCurrentInputs((prev) => ({ ...prev, ...settings }));
@@ -411,6 +428,7 @@ export default function Home() {
                   provider={provider}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
                   onRegenerateStyle={() => { return generateStyle(currentInputs as Record<string, string>); }}
+                  autoGenerate={autoLyrics}
                 />
                   </>
                 )}

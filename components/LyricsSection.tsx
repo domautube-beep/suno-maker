@@ -13,6 +13,7 @@ interface LyricsSectionProps {
   provider: Provider;
   onLyricsUpdate?: (lyrics: string) => void;
   onRegenerateStyle?: () => Promise<void>;
+  autoGenerate?: boolean;
 }
 
 // === 송폼 블록 ===
@@ -190,7 +191,7 @@ function SubLabel({ label }: { label: string }) {
 
 // === 메인 컴포넌트 ===
 export default function LyricsSection({
-  style, language, currentSettings, apiKey, provider, onLyricsUpdate, onRegenerateStyle,
+  style, language, currentSettings, apiKey, provider, onLyricsUpdate, onRegenerateStyle, autoGenerate,
 }: LyricsSectionProps) {
   // 핵심 문장 — Chat Flow에서 가져오되 수정 가능
   const [coreMessage, setCoreMessage] = useState(currentSettings?.oneLiner || "");
@@ -384,6 +385,36 @@ export default function LyricsSection({
   const [streamingLyrics, setStreamingLyrics] = useState("");
   const streamRef = useRef<HTMLPreElement>(null);
   const userScrolledRef = useRef(false);
+
+  // 퀵스타트: autoGenerate + style 있으면 자동 가사 생성
+  const autoTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (autoGenerate && style && !autoTriggeredRef.current && !generating && tracks.length === 0) {
+      autoTriggeredRef.current = true;
+      // 기본값 자동 설정
+      if (!lyricsLang) setLyricsLang("ko");
+      if (!density) setDensity("medium");
+      if (emotionArc < 0) setEmotionArc(0);
+      if (vpVoice < 0) setVpVoice(1);
+      if (vpTimbre < 0) setVpTimbre(3);
+      if (vpArticulation < 0) setVpArticulation(0);
+      if (vpDelivery < 0) setVpDelivery(1);
+      if (vpReverb < 0) setVpReverb(1);
+      if (vpEvolution < 0) setVpEvolution(3);
+      if (songFormBlocks.length === 0) {
+        const genre = currentSettings?.genre?.toLowerCase() || "";
+        if (genre.includes("hip") || genre.includes("rap") || genre.includes("trap")) {
+          setSongFormBlocks(["verse", "hook", "verse", "hook", "bridge", "hook", "outro"]);
+        } else if (genre.includes("ballad") || genre.includes("folk")) {
+          setSongFormBlocks(["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"]);
+        } else {
+          setSongFormBlocks(["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"]);
+        }
+      }
+      // 약간의 딜레이 후 생성 (state 반영 대기)
+      setTimeout(() => handleGenerate(), 500);
+    }
+  }, [autoGenerate, style, generating, tracks.length]);
 
   // 사용자 스크롤 감지
   useEffect(() => {

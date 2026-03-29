@@ -245,6 +245,7 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
 
 interface ChatFlowProps {
   onComplete: (inputs: SunoInput) => void;
+  onQuickStart?: (inputs: SunoInput) => void;
   onInputChange: (inputs: Partial<SunoInput>) => void;
   onAutoFill?: (settings: Record<string, string>) => void;
   apiKey?: string;
@@ -264,7 +265,7 @@ const DEFAULT_INPUT: SunoInput = {
   language: "",
 };
 
-export default function ChatFlow({ onComplete, onInputChange, onAutoFill, apiKey, provider }: ChatFlowProps) {
+export default function ChatFlow({ onComplete, onQuickStart: onQuickStartProp, onInputChange, onAutoFill, apiKey, provider }: ChatFlowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [inputs, setInputs] = useState<SunoInput>(DEFAULT_INPUT);
@@ -490,11 +491,15 @@ export default function ChatFlow({ onComplete, onInputChange, onAutoFill, apiKey
                     onAutoFill?.(settings);
                   }}
                   onQuickStart={(oneLiner, settings) => {
-                    // Chat Flow 스킵 → 바로 result phase
-                    const filled = { ...DEFAULT_INPUT, oneLiner, ...settings } as SunoInput;
+                    const filled = { ...DEFAULT_INPUT, oneLiner, ...settings, language: "ko" } as SunoInput;
                     setInputs(filled);
                     onInputChange(filled);
-                    onComplete(filled);
+                    // 퀵스타트: Style + Lyrics 한방 생성
+                    if (onQuickStartProp) {
+                      onQuickStartProp(filled);
+                    } else {
+                      onComplete(filled);
+                    }
                   }}
                   apiKey={apiKey}
                   provider={provider}
