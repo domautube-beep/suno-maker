@@ -388,42 +388,112 @@ export default function LyricsSection({
 
   // 퀵스타트: autoGenerate + style 있으면 자동 가사 생성
   const autoTriggeredRef = useRef(false);
-  const [autoReady, setAutoReady] = useState(false);
 
-  // 1단계: 기본값 설정
   useEffect(() => {
     if (autoGenerate && style && !autoTriggeredRef.current && !generating && tracks.length === 0) {
       autoTriggeredRef.current = true;
-      setLyricsLang("ko");
-      setDensity("medium");
-      setEmotionArc(0);
-      setVpVoice(1);
-      setVpTimbre(3);
-      setVpArticulation(0);
-      setVpDelivery(1);
-      setVpReverb(1);
-      setVpEvolution(3);
-      const genre = currentSettings?.genre?.toLowerCase() || "";
-      if (genre.includes("hip") || genre.includes("rap") || genre.includes("trap")) {
-        setSongFormBlocks(["verse", "hook", "verse", "hook", "bridge", "hook", "outro"]);
-      } else if (genre.includes("ballad") || genre.includes("folk")) {
-        setSongFormBlocks(["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"]);
-      } else {
-        setSongFormBlocks(["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"]);
-      }
-      // 다음 렌더에서 생성 트리거
-      setAutoReady(true);
-    }
-  }, [autoGenerate, style, generating, tracks.length]);
 
-  // 2단계: state 반영 후 생성 실행
-  useEffect(() => {
-    if (autoReady && !generating) {
-      setAutoReady(false);
-      handleGenerate();
+      // 기본값 설정
+      const lang = "ko";
+      const dens = "medium";
+      const arc = 0;
+      const vt = 1, tm = 3, ar = 0, dl = 1, rv = 1, ev = 3;
+      setLyricsLang(lang); setDensity(dens); setEmotionArc(arc);
+      setVpVoice(vt); setVpTimbre(tm); setVpArticulation(ar);
+      setVpDelivery(dl); setVpReverb(rv); setVpEvolution(ev);
+
+      const genre = currentSettings?.genre?.toLowerCase() || "";
+      let form: string[];
+      if (genre.includes("hip") || genre.includes("rap") || genre.includes("trap")) {
+        form = ["verse", "hook", "verse", "hook", "bridge", "hook", "outro"];
+      } else if (genre.includes("ballad") || genre.includes("folk")) {
+        form = ["verse", "chorus", "verse", "chorus", "bridge", "chorus", "outro"];
+      } else {
+        form = ["verse", "pre", "chorus", "verse", "pre", "chorus", "bridge", "chorus", "outro"];
+      }
+      setSongFormBlocks(form);
+
+      // 레퍼런스 자동 설정
+      if (currentSettings?.oneLiner && !reference) {
+        setReference(currentSettings.oneLiner);
+      }
+
+      // 직접 프롬프트 빌드 + API 호출 (state 대기 불필요)
+      const directGenerate = async () => {
+        setGenerating(true);
+        setStreamingLyrics("");
+        setTimeout(() => streamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+
+        // 직접 프롬프트 조합 (현재 state 대신 로컬 변수 사용)
+        const langLabel = "한국어";
+        const densityDesc = "Verse 4줄, Chorus 4줄 — 표준";
+        const arcDesc = EMOTION_ARCS[arc].value;
+        const formLabels = form.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
+        const vocalProfile = [
+          `[VOCAL_PROFILE: ${VP_VOICE_TYPE[vt].value.split(",")[0]}, ${VP_TIMBRE[tm].value.split(",")[0]}, ${VP_DELIVERY[dl].value.split(",")[0]}]`,
+          `[VOICE_TYPE: ${VP_VOICE_TYPE[vt].value}]`,
+          `[TIMBRE: ${VP_TIMBRE[tm].value}]`,
+          `[DELIVERY: ${VP_DELIVERY[dl].value}]`,
+          `[REVERB: ${VP_REVERB[rv].value}]`,
+          `[Evolution: ${VP_EVOLUTION[ev].value}]`,
+        ].join("\n");
+
+        const prompt = [
+          `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
+          coreMessage ? `\n=== 핵심 문장 ===\n"${coreMessage}"\n` : "",
+          `=== 가사 작성 규칙 ===`,
+          buildLyricsRules(bannedWords),
+          `\n=== Style of Music ===\n${style}`,
+          `\n=== VOCAL PROFILE ===\n${vocalProfile}`,
+          `\n=== 가사 구조 ===`,
+          `가사 언어: ${langLabel} — 반드시 한국어로만. 영어 금지.`,
+          `송폼: ${formLabels.join(" → ")}`,
+          `가사 밀도: ${densityDesc}`,
+          `감정 흐름: ${arcDesc}`,
+          `\n=== 출력 ===`,
+          `1. VOCAL PROFILE 맨 위에 출력`,
+          `2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사`,
+          `3. 코드블록 없이 텍스트만`,
+        ].join("\n");
+
+        try {
+          const res = await fetch("/api/lyrics-stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt, apiKey, provider }),
+          });
+          if (!res.ok) { setError("가사 생성 실패"); setGenerating(false); return; }
+          const reader = res.body?.getReader();
+          if (!reader) { setGenerating(false); return; }
+          const decoder = new TextDecoder();
+          let fullText = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+              if (!line.startsWith("data: ")) continue;
+              const d = line.slice(6).trim();
+              if (d === "[DONE]") break;
+              try { const p = JSON.parse(d); if (p.text) { fullText += p.text; setStreamingLyrics(fullText); } } catch {}
+            }
+          }
+          if (fullText) {
+            const newTrack = { id: 1, lyrics: fullText };
+            setTracks([newTrack]);
+            setActiveTrack(0);
+            setGeneratedLyrics(fullText);
+            setStreamingLyrics("");
+            onLyricsUpdate?.(fullText);
+          }
+        } catch { setError("API 호출 실패"); }
+        setGenerating(false);
+      };
+
+      // style 생성 완료 후 약간의 딜레이
+      setTimeout(directGenerate, 300);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoReady]);
+  }, [autoGenerate, style, tracks.length]);
 
   // 사용자 스크롤 감지
   useEffect(() => {
