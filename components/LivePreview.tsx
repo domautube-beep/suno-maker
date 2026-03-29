@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { PreviewSection, SunoInput } from "@/lib/types";
 import { generatePrediction } from "@/lib/selectionExplainer";
+import { GENRE_CATEGORIES } from "@/lib/genreData";
 
 interface LivePreviewProps {
   sections: PreviewSection[];
@@ -20,57 +21,13 @@ type SectionConfig = { categories: SelectorCategory[]; singleSelect?: boolean } 
 const SECTION_SELECTOR: Record<string, SectionConfig> = {
   identity: null, // 직접 입력
 
-  // 장르 — value를 표시명으로 (GenreSelector와 일치)
+  // 장르 — genreData.ts에서 동적 생성 (GenreSelector와 동일 데이터)
   genre: {
     singleSelect: true,
-    categories: [
-      { label: "팝 계열", options: [
-        { label: "K-Pop", value: "K-Pop" },
-        { label: "Pop", value: "Pop" },
-        { label: "Dance Pop", value: "Dance Pop" },
-        { label: "City Pop", value: "City Pop" },
-        { label: "Disco / Funk", value: "Disco / Funk" },
-      ]},
-      { label: "R&B / 소울", options: [
-        { label: "R&B / Soul", value: "R&B / Soul" },
-        { label: "Neo Soul", value: "Neo Soul" },
-        { label: "Gospel", value: "Gospel" },
-      ]},
-      { label: "힙합", options: [
-        { label: "Hip-Hop", value: "Hip-Hop" },
-        { label: "Trap", value: "Trap" },
-        { label: "Boom Bap", value: "Boom Bap" },
-      ]},
-      { label: "감성", options: [
-        { label: "Ballad", value: "Ballad" },
-        { label: "Lo-Fi", value: "Lo-Fi" },
-        { label: "Acoustic", value: "Acoustic" },
-      ]},
-      { label: "록/메탈", options: [
-        { label: "Rock", value: "Rock" },
-        { label: "Alt / Indie", value: "Alt / Indie" },
-        { label: "Metal", value: "Metal" },
-      ]},
-      { label: "일렉트로닉", options: [
-        { label: "EDM / Dance", value: "EDM / Dance" },
-        { label: "House", value: "House" },
-        { label: "Deep House", value: "Deep House" },
-        { label: "Afro House", value: "Afro House" },
-        { label: "Melodic House", value: "Melodic House" },
-        { label: "UK Garage", value: "UK Garage" },
-        { label: "Techno", value: "Techno" },
-        { label: "Synthwave", value: "Synthwave" },
-        { label: "Ambient", value: "Ambient" },
-      ]},
-      { label: "클래식/월드", options: [
-        { label: "Jazz", value: "Jazz" },
-        { label: "Blues", value: "Blues" },
-        { label: "Cinematic", value: "Cinematic" },
-        { label: "Trot", value: "Trot" },
-        { label: "Reggae", value: "Reggae" },
-        { label: "Latin", value: "Latin" },
-      ]},
-    ],
+    categories: GENRE_CATEGORIES.map((cat) => ({
+      label: cat.label,
+      options: cat.options.map((opt) => ({ label: opt, value: opt })),
+    })),
   },
 
   // 시대
@@ -129,44 +86,21 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
     ],
   },
 
-  // 느낌/분위기 (vibe) — 멀티셀렉트 대분류+소분류
+  // 느낌/분위기 (vibe) — VibeSelector와 동일 데이터
   texture: {
     categories: [
       { label: "분위기", multiSelect: true, options: [
-        { label: "어두운", value: "어두운" },
-        { label: "몽환적", value: "몽환적" },
-        { label: "밝은", value: "밝은" },
-        { label: "감성적", value: "감성적" },
-        { label: "긴장감", value: "긴장감" },
-        { label: "우울한", value: "우울한" },
-        { label: "희망적", value: "희망적" },
-        { label: "신비로운", value: "신비로운" },
-      ]},
+        "어두운", "밝은", "몽환적", "감성적", "긴장감", "편안한", "우울한", "희망적", "신비로운", "섹시한", "쓸쓸한", "유쾌한",
+      ].map((v) => ({ label: v, value: v })) },
       { label: "에너지", multiSelect: true, options: [
-        { label: "에너지틱", value: "에너지틱" },
-        { label: "편안한", value: "편안한" },
-        { label: "웅장한", value: "웅장한" },
-        { label: "미니멀", value: "미니멀" },
-        { label: "폭발적", value: "폭발적" },
-        { label: "나른한", value: "나른한" },
-        { label: "격렬한", value: "격렬한" },
-      ]},
+        "에너지틱", "부드러운", "웅장한", "차분한", "폭발적", "나른한", "점진적", "격렬한", "고요한", "압도적",
+      ].map((v) => ({ label: v, value: v })) },
       { label: "질감", multiSelect: true, options: [
-        { label: "따뜻한", value: "따뜻한" },
-        { label: "차가운", value: "차가운" },
-        { label: "거친", value: "거친" },
-        { label: "레트로", value: "레트로" },
-        { label: "매끈한", value: "매끈한" },
-        { label: "아날로그", value: "아날로그" },
-      ]},
+        "따뜻한", "차가운", "거친", "매끈한", "레트로", "미래적", "아날로그", "디지털", "촉촉한", "건조한", "무거운", "가벼운",
+      ].map((v) => ({ label: v, value: v })) },
       { label: "특성", multiSelect: true, options: [
-        { label: "중독적", value: "중독적" },
-        { label: "세련된", value: "세련된" },
-        { label: "실험적", value: "실험적" },
-        { label: "그루비", value: "그루비" },
-        { label: "서정적", value: "서정적" },
-        { label: "몰입감", value: "몰입감" },
-      ]},
+        "중독적", "세련된", "실험적", "미니멀", "복잡한", "공간감", "친밀한", "거리감", "그루비", "서정적", "파괴적", "몰입감",
+      ].map((v) => ({ label: v, value: v })) },
     ],
   },
 
