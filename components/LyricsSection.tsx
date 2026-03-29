@@ -304,14 +304,14 @@ export default function LyricsSection({
     ));
     parts.push(``);
 
-    // STEP 2: 산문시 → 가사 변환
-    parts.push(`=== STEP 2: 산문시 → 가사 추출 ===`);
-    parts.push(`위 산문시를 원재료로 삼아, 아래 규칙에 따라 Suno v5.5용 가사를 추출해라.`);
-    parts.push(`산문시의 서사, 훅 후보, 모티프, 수사법, 운율을 최대한 살려서 가사로 변환해라.`);
-    parts.push(`장르가 "${genre}"이므로, 이 장르의 가사 특성에 맞게 추출해라:`);
-    parts.push(`- 음절 수, 문장 길이, 반복 패턴, 애드립, 리듬감을 장르에 맞춰 조절`);
-    parts.push(`- 산문시에서 가장 강한 구절을 Hook/Chorus로 배치`);
-    parts.push(`- 산문시의 서사 흐름을 Verse→Chorus→Bridge 구조에 매핑`);
+    // STEP 2: 독백 → 가사 작성
+    parts.push(`=== STEP 2: 독백을 바탕으로 가사 작성 ===`);
+    parts.push(`위 독백의 감정, 모티프, 반복 구절을 가져와서 "${genre}" 장르의 가사를 새로 써라.`);
+    parts.push(`독백을 그대로 옮기거나 번역하지 마라. 독백은 "감정의 씨앗"일 뿐이다.`);
+    parts.push(`가사는 장르의 작법에 맞게 완전히 새로 쓰되, 독백의 핵심 감정과 모티프만 가져와라.`);
+    parts.push(`- 독백에서 자연스럽게 반복된 구절 → 훅으로 발전시켜라`);
+    parts.push(`- 독백의 모티프(사물/장면) → 가사 전체에서 의미가 변하며 재등장`);
+    parts.push(`- 장르별 음절수, 문장 길이, 애드립, 리듬감을 철저히 따라라`);
     parts.push(``);
 
     parts.push(``);
@@ -1145,7 +1145,7 @@ density: short/medium/long 중`,
                     padding: "8px 12px", backgroundColor: "#fff7ed", borderRadius: "10px",
                     border: "1px solid #fed7aa", userSelect: "none",
                   }}>
-                    산문시 원본 보기 (가사의 원재료)
+                    독백 원본 보기 (가사의 씨앗)
                   </summary>
                   <pre style={{
                     fontSize: "12px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.8",
