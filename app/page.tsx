@@ -33,6 +33,9 @@ export default function Home() {
   const [chatKey, setChatKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
 
+  // 모바일 프리뷰 바텀시트
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+
   const flashToastRef = useRef<() => void>(() => {});
   const [identityOverride, setIdentityOverride] = useState<string | null>(null);
 
@@ -256,7 +259,7 @@ export default function Home() {
       {phase === "chat" && (
         <div className="flex-1 flex justify-center overflow-hidden">
           <div className="w-full max-w-5xl flex">
-            <div className="flex-1 min-w-0 overflow-y-auto border-r border-border">
+            <div className="flex-1 min-w-0 overflow-y-auto lg:border-r border-border">
               <ChatFlow
                 key={chatKey}
                 onComplete={handleComplete}
@@ -285,10 +288,10 @@ export default function Home() {
         <div className="flex-1 flex justify-center overflow-hidden">
           <div className="w-full max-w-5xl flex">
             {/* 왼쪽: 결과 */}
-            <div className="flex-1 min-w-0 overflow-y-auto border-r border-border">
+            <div className="flex-1 min-w-0 overflow-y-auto lg:border-r border-border">
               <ProgressBar activeIndex={9} appPhase="result" />
 
-              <div className="p-4 space-y-4 pb-8">
+              <div className="p-4 space-y-4 pb-24 lg:pb-8">
                 {/* 처음부터 다시 */}
                 <button onClick={handleReset}
                   className="text-xs text-text-muted hover:text-text-primary transition-colors flex items-center gap-1">
@@ -414,7 +417,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 오른쪽: 프리뷰 */}
+            {/* 오른쪽: 프리뷰 (데스크탑) */}
             <div className="w-[400px] flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
               <LivePreview
                 sections={previewSections}
@@ -424,6 +427,81 @@ export default function Home() {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* 모바일 프리뷰 플로팅 버튼 (< 1024px) */}
+      {previewSections.length > 0 && (
+        <button
+          onClick={() => setMobilePreviewOpen(true)}
+          className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full shadow-lg"
+          style={{
+            backgroundColor: "#f97316",
+            color: "#fff",
+            fontSize: "13px",
+            fontWeight: 700,
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(249,115,22,0.4)",
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          프리뷰
+        </button>
+      )}
+
+      {/* 모바일 프리뷰 바텀시트 (< 1024px) */}
+      {mobilePreviewOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col">
+          {/* 오버레이 */}
+          <div
+            className="flex-shrink-0"
+            style={{ height: "10vh", backgroundColor: "rgba(0,0,0,0.4)" }}
+            onClick={() => setMobilePreviewOpen(false)}
+          />
+          {/* 바텀시트 본체 */}
+          <div
+            className="flex-1 flex flex-col overflow-hidden"
+            style={{
+              backgroundColor: "#fff",
+              borderTopLeftRadius: "20px",
+              borderTopRightRadius: "20px",
+              boxShadow: "0 -4px 30px rgba(0,0,0,0.15)",
+              animation: "slide-up 0.3s ease-out",
+            }}
+          >
+            {/* 핸들 + 닫기 */}
+            <div style={{ padding: "12px 20px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ width: "36px", height: "4px", borderRadius: "2px", backgroundColor: "#d4d4d4", margin: "0 auto" }} />
+              <button
+                onClick={() => setMobilePreviewOpen(false)}
+                style={{ position: "absolute", right: "16px", background: "none", border: "none", cursor: "pointer", padding: "4px" }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#737373" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* 프리뷰 콘텐츠 */}
+            <div className="flex-1 overflow-y-auto">
+              <LivePreview
+                sections={previewSections}
+                onSectionUpdate={handleSectionUpdate}
+                isReady={phase === "result"}
+                generating={generating}
+                currentInputs={currentInputs}
+              />
+            </div>
+          </div>
+          <style>{`
+            @keyframes slide-up {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+          `}</style>
         </div>
       )}
     </div>

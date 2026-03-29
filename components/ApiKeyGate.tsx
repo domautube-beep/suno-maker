@@ -59,12 +59,12 @@ export default function ApiKeyGate({ onKeySubmit }: ApiKeyGateProps) {
   return (
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      minHeight: "100vh", backgroundColor: "#fafafa", padding: "20px",
+      minHeight: "100vh", backgroundColor: "#fafafa", padding: "16px",
     }}>
       <div style={{
         width: "100%", maxWidth: "420px", backgroundColor: "#fff",
         borderRadius: "20px", border: "1px solid #e5e5e5",
-        padding: "40px 32px", textAlign: "center",
+        padding: "32px 20px", textAlign: "center",
       }}>
         {/* 로고 */}
         <div style={{ marginBottom: "24px" }}>

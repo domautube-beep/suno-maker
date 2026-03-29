@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GENRE_CATEGORIES, TOTAL_GENRE_COUNT, GENRE_DESCRIPTIONS } from "@/lib/genreData";
+import { GENRE_CATEGORIES, GENRE_DESCRIPTIONS } from "@/lib/genreData";
 
 interface GenreSelectorProps {
   onSubmit: (value: string) => void;

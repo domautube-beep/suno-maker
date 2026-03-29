@@ -43,8 +43,6 @@ function guideAfterOneLiner(value: string): string {
 
 // 장르 선택 후 → 느낌 추천
 function guideAfterGenre(value: string, ctx: Partial<SunoInput>): string {
-  const preset = getGenrePreset(value);
-
   // 장르 특성 설명 + 느낌 추천
   const genreAdvice: Record<string, string> = {
     "K-Pop": "K-Pop이면 밝고 에너지틱한 느낌이 기본이에요. '중독적', '매끈한' 쪽을 추천해요.",

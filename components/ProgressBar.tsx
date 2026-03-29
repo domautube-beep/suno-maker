@@ -34,7 +34,7 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
     activeIndex;
 
   return (
-    <div data-progressbar style={{ padding: "24px 24px", borderBottom: "1px solid #e5e5e5", cursor: "pointer" }}>
+    <div data-progressbar style={{ padding: "16px 16px", borderBottom: "1px solid #e5e5e5", cursor: "pointer" }}>
       <div style={{ display: "flex", gap: "2px", marginBottom: "8px" }}>
         {PIPELINE.map((step, i) => {
           const isCurrent = i === resolvedActiveIndex;
@@ -68,6 +68,7 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
         })}
       </div>
 
+      {/* 라벨 — 모바일에서는 현재 스텝만 표시, 나머지는 dot */}
       <div style={{ display: "flex" }}>
         {PIPELINE.map((step, i) => {
           const isCurrent = i === resolvedActiveIndex;
@@ -84,9 +85,9 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
             <span
               key={step.id}
               onClick={() => isClickable2 && onStepClick?.(i)}
+              className={isCurrent ? "progress-label-current" : "progress-label-other"}
               style={{
                 flex: 1,
-                fontSize: "9px",
                 textAlign: "center",
                 color,
                 fontWeight,
@@ -105,6 +106,37 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
           0%, 100% { opacity: 1; }
           50% { opacity: 0.4; }
         }
+
+        /* 모바일: 라벨 기본 숨기고 현재 스텝만 표시 */
+        .progress-label-other {
+          font-size: 0;
+          line-height: 0;
+          overflow: hidden;
+        }
+        .progress-label-other::after {
+          content: "\\00b7";
+          font-size: 14px;
+          line-height: 1;
+        }
+        .progress-label-current {
+          font-size: 10px;
+          white-space: nowrap;
+        }
+
+        /* 데스크탑(>= 768px): 모든 라벨 표시 */
+        @media (min-width: 768px) {
+          .progress-label-other {
+            font-size: 9px;
+            line-height: normal;
+            overflow: visible;
+          }
+          .progress-label-other::after {
+            content: none;
+          }
+          .progress-label-current {
+            font-size: 9px;
+          }
+        }
       `}</style>
 
       {/* 프로그레스바 호버 효과 */}
@@ -119,13 +151,15 @@ export default function ProgressBar({ activeIndex, onStepClick, completedSteps, 
           box-shadow: 0 2px 8px rgba(249,115,22,0.3);
           transform: scaleX(1.05);
         }
-        div[data-progressbar]:hover span {
-          font-size: 10px !important;
-        }
-        div[data-progressbar] span:hover {
-          font-size: 13px !important;
-          font-weight: 700 !important;
-          color: #f97316 !important;
+        @media (min-width: 768px) {
+          div[data-progressbar]:hover span {
+            font-size: 10px !important;
+          }
+          div[data-progressbar] span:hover {
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            color: #f97316 !important;
+          }
         }
       `}</style>
     </div>

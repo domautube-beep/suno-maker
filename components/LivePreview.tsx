@@ -7,7 +7,6 @@ import { generatePrediction } from "@/lib/selectionExplainer";
 interface LivePreviewProps {
   sections: PreviewSection[];
   onSectionUpdate?: (sectionId: string, newEnglish: string) => void;
-  onAutoGenerate?: () => void;
   generating?: boolean;
   isReady?: boolean;
   currentInputs?: Partial<SunoInput>; // 선택 요약용
@@ -200,13 +199,12 @@ const SECTION_SELECTOR: Record<string, SectionConfig> = {
   engine: null,
 };
 
-export default function LivePreview({ sections, onSectionUpdate, onAutoGenerate, generating, isReady = false, currentInputs }: LivePreviewProps) {
+export default function LivePreview({ sections, onSectionUpdate, generating, isReady = false, currentInputs }: LivePreviewProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [hasChanges, setHasChanges] = useState(false); // 프리뷰에서 수정이 발생했는지
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // 팝오버 외부 클릭 감지
@@ -226,13 +224,23 @@ export default function LivePreview({ sections, onSectionUpdate, onAutoGenerate,
     setEditingId(section.id);
     setEditValue(section.english);
     setExpandedCat(null);
-    setSelectedTags([]);
+
+    // multiSelect 섹션: 기존 선택값을 selectedTags에 복원
+    const config = SECTION_SELECTOR[section.id];
+    if (config && !config.singleSelect && section.english) {
+      const existingValues = section.english.split(",").map((v) => v.trim()).filter(Boolean);
+      // config의 options에 있는 값만 복원 (직접 입력 등 무효값 제외)
+      const allValidValues = new Set(config.categories.flatMap((c) => c.options.map((o) => o.value)));
+      const validTags = existingValues.filter((v) => allValidValues.has(v));
+      setSelectedTags(validTags);
+    } else {
+      setSelectedTags([]);
+    }
   };
 
   const handleSave = (sectionId: string, value?: string) => {
     const finalValue = value || (selectedTags.length > 0 ? selectedTags.join(", ") : editValue);
     onSectionUpdate?.(sectionId, finalValue);
-    setHasChanges(true);
     setEditingId(null);
     setExpandedCat(null);
     setSelectedTags([]);
@@ -392,7 +400,8 @@ export default function LivePreview({ sections, onSectionUpdate, onAutoGenerate,
                         {/* 대분류 탭 */}
                         <div style={{ display: "flex", gap: "4px" }}>
                           {selectorConfig.categories.map((cat) => {
-                            const hasSel = cat.options.some((o) => selectedTags.includes(o.value) || section.english.includes(o.value));
+                            const sectionValues = section.english.split(",").map((v) => v.trim());
+                            const hasSel = cat.options.some((o) => selectedTags.includes(o.value) || sectionValues.includes(o.value));
                             return (
                               <button
                                 key={cat.label}
@@ -417,7 +426,8 @@ export default function LivePreview({ sections, onSectionUpdate, onAutoGenerate,
                             {selectorConfig.categories
                               .find((c) => c.label === expandedCat)
                               ?.options.map((opt) => {
-                                const isSelected = selectedTags.includes(opt.value) || section.english === opt.value;
+                                const currentValues = section.english.split(",").map((v) => v.trim());
+                                const isSelected = selectedTags.includes(opt.value) || currentValues.includes(opt.value);
                                 return (
                                   <button
                                     key={opt.value}

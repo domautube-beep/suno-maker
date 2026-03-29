@@ -7,7 +7,6 @@ interface OutputBlockProps {
   subtitle: string;
   content: string;
   charLimit?: number;
-  onModify?: (request: string) => void;
   // 직접 편집 완료 시 호출 (편집된 전체 텍스트 반환)
   onEdit?: (newContent: string) => void;
 }

@@ -8,7 +8,6 @@ import ChatBubble from "./ChatBubble";
 import TextInput from "./TextInput";
 import SelectGrid from "./SelectGrid";
 import VibeSelector from "./VibeSelector";
-// VocalSelector는 Lyrics 섹션으로 이동
 import GenreSelector from "./GenreSelector";
 import InstrumentSelector from "./InstrumentSelector";
 import TextureSelector from "./TextureSelector";
@@ -108,19 +107,34 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
             try {
               const res = await fetch("/api/lyrics", {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: `핵심 문장: "${value.trim()}"
+                body: JSON.stringify({ prompt: `너는 음악 프로듀서 겸 A&R 디렉터다. 아래 핵심 문장을 음악적으로 분석해라.
 
-이 문장의 감정, 분위기, 주제를 분석해서 아래를 JSON으로만 출력해줘:
+핵심 문장: "${value.trim()}"
+
+=== 분석 프레임워크 ===
+1. 감정 온도: 이 문장이 품고 있는 감정의 종류와 강도 (차가운/따뜻한/뜨거운, 내향/외향)
+2. 에너지 곡선: 이 감정이 곡에서 어떤 에너지 흐름으로 표현되어야 하는가
+3. 장르 엔진: 이 감정을 가장 잘 전달할 수 있는 장르는 무엇인가 (리듬, 악기, 편곡 관점)
+4. 시대 물리학: 어떤 시대의 프로덕션 문법이 이 감정에 맞는가
+5. 보컬 물리학: 이 감정을 전달하는 보컬의 물리적 특성 (밝기, 질감, 거리감)
+6. 리듬 모션: 적절한 템포와 리듬 운동감
+
+=== 레퍼런스 선정 기준 ===
+단순히 "비슷한 주제"가 아니라:
+- 이 감정을 "소리로 표현하는 방식"이 유사한 곡
+- 프로덕션 접근법(편곡 밀도, 리듬 패턴, 공간감)이 참고할 만한 곡
+- 가사의 "작법"(서사 구조, 수사법, 줄 길이)이 참고할 만한 곡
+
+아래 JSON으로만 출력. 설명 없이:
 {
-  "refs": "참고할 곡 3개 (아티스트 - 곡명, 한 줄 이유). 줄바꿈으로 구분",
-  "genre": "가장 어울리는 장르 1개 (영문, GenreSelector 옵션과 동일하게)",
-  "tempo": "BPM 슬롯 (very_slow/slow/mid_slow/mid/mid_fast/fast 중 1개)",
-  "era": "시대 (80s/90s/2000s/2010s/2020s/vintage/futuristic 중 1개)",
-  "texture": "질감 (lofi_warm/clean_digital/analog_vintage/raw_gritty/dreamy/spacious/dense/minimal 중 1개)",
-  "reverb": "리버브 (dry/room/hall/cathedral/lofi_filter/plate 중 1개)",
-  "vibe": "느낌 키워드 2~3개 (한국어, 쉼표 구분)"
-}
-JSON만 출력. 설명 없이.`, apiKey, provider }),
+  "refs": "참고곡 3개. 각 줄: 아티스트 - 곡명, [프로덕션/가사/감정 중 참고 이유 1줄]. 줄바꿈 구분",
+  "genre": "장르 1개 (K-Pop/Pop/Hip-Hop/Trap/Boom Bap/R&B/Neo Soul/Ballad/Lo-Fi/EDM/Rock/Indie Rock/Punk/Metal/House/Deep House/Afro House/UK Garage/Techno/Ambient/Synthwave/Jazz/Blues/Cinematic/Trot/Reggae/Latin/Folk/Acoustic/Gospel 중)",
+  "tempo": "very_slow/slow/mid_slow/mid/mid_fast/fast/very_fast 중 1개",
+  "era": "80s/90s/2000s/2010s/2020s/vintage/futuristic 중 1개",
+  "texture": "lofi_warm/clean_digital/analog_vintage/raw_gritty/dreamy/spacious/dense/minimal 중 1개",
+  "reverb": "dry/room/hall/cathedral/lofi_filter/plate 중 1개",
+  "vibe": "느낌 2~3개 한국어 (어두운/몽환적/밝은/감성적/에너지틱/따뜻한/차가운/긴장감/편안한/웅장한/거친/중독적/우울한/희망적/나른한/세련된/그루비/서정적 중)"
+}`, apiKey, provider }),
               });
               const data = await res.json();
               if (data.lyrics) {
