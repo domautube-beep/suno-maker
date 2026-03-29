@@ -200,6 +200,8 @@ export default function LyricsSection({
 
   // 레퍼런스 곡
   const [reference, setReference] = useState("");
+  const [refAnalysis, setRefAnalysis] = useState("");
+  const [analyzingRef, setAnalyzingRef] = useState(false);
 
   // 송폼 + 드래그
   const [songFormBlocks, setSongFormBlocks] = useState<string[]>([]);
@@ -320,30 +322,16 @@ export default function LyricsSection({
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
 
     if (reference.trim()) {
-      parts.push(`=== 레퍼런스 곡 분석 + 반영 ===`);
+      parts.push(`=== 레퍼런스 곡 (50% 반영) ===`);
       parts.push(`레퍼런스: "${reference.trim()}"`);
-      parts.push(``);
-      parts.push(`이 곡을 아래 4단계로 분석하고, 결과를 가사에 50% 반영해라:`);
-      parts.push(``);
-      parts.push(`1단계 — 가사 구조 분석:`);
-      parts.push(`  이 곡의 Verse/Chorus/Bridge 각 섹션이 어떤 역할을 하는지 파악`);
-      parts.push(`  서사 전개 방식 (시간순/회상/대비/반복 등) 파악`);
-      parts.push(``);
-      parts.push(`2단계 — 가사 진행법 분석:`);
-      parts.push(`  감정이 어떻게 흘러가는지 (잔잔→폭발? 일정? 반전?)`);
-      parts.push(`  Verse에서 Chorus로 넘어갈 때 어떤 트리거를 쓰는지`);
-      parts.push(`  Hook이 어떤 방식으로 기억에 남는지 (반복? 대비? 질문?)`);
-      parts.push(``);
-      parts.push(`3단계 — 작성법 분석:`);
-      parts.push(`  이 곡이 쓰는 수사법 (비유/대구/직설/나열 등)`);
-      parts.push(`  줄 길이와 리듬 패턴`);
-      parts.push(`  단어 선택의 수준 (일상어/시적/거리체 등)`);
-      parts.push(``);
-      parts.push(`4단계 — 반영:`);
-      parts.push(`  위 분석 결과의 구조/진행법/작성법을 50% 참고하되,`);
-      parts.push(`  사용자의 핵심 문장과 설정을 주제로 새 가사를 작성`);
-      parts.push(`  아티스트명/곡명 직접 언급 금지, 가사 베끼기 금지`);
-      parts.push(`  레퍼런스의 "뼈대"를 가져오고 "살"은 완전히 새로 쓰는 것`);
+      if (refAnalysis) {
+        parts.push(`분석 결과:`);
+        parts.push(refAnalysis);
+      }
+      parts.push(`이 분석 결과의 구조/진행법/작성법을 50% 참고하되,`);
+      parts.push(`사용자의 핵심 문장과 설정을 주제로 새 가사를 작성.`);
+      parts.push(`아티스트명/곡명 직접 언급 금지. 가사 베끼기 금지.`);
+      parts.push(`레퍼런스의 "뼈대"를 가져오고 "살"은 완전히 새로 쓰는 것.`);
       parts.push(``);
     }
 
@@ -485,7 +473,11 @@ export default function LyricsSection({
     setTimeout(() => streamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     try {
       const nextNum = trackNumber + 1;
-      const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===
+      const prevHooks = tracks.map((t) => {
+        const m = t.lyrics.match(/\[SECTION: Hook\][\s\S]*?\n([^\[\n]+)/);
+        return m ? `Track ${t.id}: "${m[1].trim()}"` : null;
+      }).filter(Boolean).join("\n");
+      const prompt = buildFullPrompt() + `\n\n${prevHooks ? `=== 이전 트랙 Hook (겹치면 안 됨) ===\n${prevHooks}\n\n` : ""}=== 앨범 변주 지침 (Track ${nextNum}) ===
 이것은 같은 앨범의 ${nextNum}번째 곡이다. 핵심 규칙:
 
 1. 같은 앨범의 "다른 곡"이다 — 비슷한 곡이 아니라 완전히 다른 곡
@@ -593,18 +585,72 @@ export default function LyricsSection({
 
       {/* 2. REFERENCE */}
       <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5" }}>
-        <SectionLabel label="Reference" sub="참고할 곡이 있으면 입력하세요 (선택사항). 곡의 방향이 50% 반영됩니다" />
-        <input
-          type="text"
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          placeholder='예: 아이유 - 밤편지, Billie Eilish - Ocean Eyes'
-          style={{
-            width: "100%", border: "1px solid #e5e5e5", borderRadius: "12px",
-            padding: "12px 14px", fontSize: "13px", outline: "none",
-            color: "#0a0a0a",
-          }}
-        />
+        <SectionLabel label="Reference" sub="참고할 곡이 있으면 입력 후 분석 버튼을 눌러주세요 (선택사항)" />
+        <div style={{ display: "flex", gap: "8px", marginBottom: refAnalysis ? "12px" : "0" }}>
+          <input
+            type="text"
+            value={reference}
+            onChange={(e) => { setReference(e.target.value); setRefAnalysis(""); }}
+            placeholder='예: 아이유 - 밤편지'
+            style={{
+              flex: 1, border: "1px solid #e5e5e5", borderRadius: "12px",
+              padding: "12px 14px", fontSize: "13px", outline: "none", color: "#0a0a0a",
+            }}
+          />
+          {reference.trim() && !refAnalysis && (
+            <button
+              onClick={async () => {
+                setAnalyzingRef(true);
+                try {
+                  const res = await fetch("/api/lyrics-stream", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      prompt: `"${reference.trim()}" 이 곡의 가사를 분석해줘. 아래 4가지만 간결하게:
+1. 구조: Verse/Chorus/Bridge 각 역할과 서사 전개 방식
+2. 진행법: 감정 흐름, Verse→Chorus 트리거, Hook 기억법
+3. 작성법: 수사법, 줄 길이 패턴, 단어 수준
+4. 특징: 이 곡만의 독특한 가사 특징 1~2줄
+각 항목 2~3줄로. 한국어로. 총 200자 이내.`,
+                      apiKey, provider,
+                    }),
+                  });
+                  if (!res.ok) { setAnalyzingRef(false); return; }
+                  const reader = res.body?.getReader();
+                  if (!reader) { setAnalyzingRef(false); return; }
+                  const decoder = new TextDecoder();
+                  let full = "";
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+                      if (!line.startsWith("data: ")) continue;
+                      const d = line.slice(6).trim();
+                      if (d === "[DONE]") break;
+                      try { const p = JSON.parse(d); if (p.text) { full += p.text; setRefAnalysis(full); } } catch {}
+                    }
+                  }
+                } catch {}
+                setAnalyzingRef(false);
+              }}
+              disabled={analyzingRef}
+              style={{
+                padding: "12px 20px", borderRadius: "12px", fontSize: "12px", fontWeight: 600,
+                backgroundColor: analyzingRef ? "#e5e5e5" : "#0a0a0a",
+                color: analyzingRef ? "#a3a3a3" : "#fff",
+                border: "none", cursor: analyzingRef ? "wait" : "pointer", whiteSpace: "nowrap",
+              }}
+            >
+              {analyzingRef ? "분석 중..." : "분석하기"}
+            </button>
+          )}
+        </div>
+        {refAnalysis && (
+          <div style={{ padding: "12px", backgroundColor: "#f0fdf4", borderRadius: "10px", border: "1px solid #bbf7d0" }}>
+            <p style={{ fontSize: "10px", fontWeight: 700, color: "#16a34a", marginBottom: "6px" }}>분석 완료 — 가사 생성에 반영됩니다</p>
+            <pre style={{ fontSize: "11px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.5" }}>{refAnalysis}</pre>
+          </div>
+        )}
       </div>
 
       {/* 3. VOCAL PROFILE */}
@@ -1002,7 +1048,8 @@ export default function LyricsSection({
                 setGenerating(true); setError(""); setStreamingLyrics("");
                 try {
                   const nextNum = trackNumber + 1;
-                  const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===
+                  const prevH = tracks.map((t) => { const m = t.lyrics.match(/\[SECTION: Hook\][\s\S]*?\n([^\[\n]+)/); return m ? `Track ${t.id}: "${m[1].trim()}"` : null; }).filter(Boolean).join("\n");
+                  const prompt = buildFullPrompt() + `\n\n${prevH ? `=== 이전 Hook (겹치면 안 됨) ===\n${prevH}\n\n` : ""}=== 앨범 변주 지침 (Track ${nextNum}) ===
 같은 앨범 ${nextNum}번째 곡. Style 유지, 가사는 완전히 다르게:
 - 같은 화자의 감성을 다른 모티프, 다른 환경, 다른 감정으로 표현
 - 새로운 마음으로 바라보는 스타일로 다시 쓴 가사
