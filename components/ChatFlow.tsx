@@ -16,15 +16,18 @@ import { getGenrePreset, getTempoLabel } from "@/lib/genrePresets";
 import ConfirmCard from "./ConfirmCard";
 import ProgressBar from "./ProgressBar";
 
-// 핵심 문장 입력 + "더 풍부하게" AI 확장 기능
-function OneLinerInput({ placeholder, onSubmit, apiKey, provider }: {
+// 핵심 문장 입력 + AI 확장 + 레퍼런스 추천
+function OneLinerInput({ placeholder, onSubmit, onAutoFill, apiKey, provider }: {
   placeholder?: string;
   onSubmit: (val: string) => void;
+  onAutoFill?: (settings: Record<string, string>) => void;
   apiKey?: string;
   provider?: string;
 }) {
   const [value, setValue] = useState("");
   const [expanding, setExpanding] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [recommendation, setRecommendation] = useState<{ refs: string; settings: Record<string, string> } | null>(null);
 
   const handleExpand = async () => {
     if (!value.trim() || !apiKey || !provider) return;
@@ -82,37 +85,94 @@ function OneLinerInput({ placeholder, onSubmit, apiKey, provider }: {
         </button>
       </div>
 
-      {/* 글자를 입력하면 "더 풍부하게" 버튼 표시 */}
-      {value.trim().length > 0 && value.trim().length < 30 && apiKey && (
-        <button
-          onClick={handleExpand}
-          disabled={expanding}
-          style={{
-            padding: "8px 16px", borderRadius: "9999px", fontSize: "12px", fontWeight: 600,
-            backgroundColor: expanding ? "#e5e5e5" : "#fff7ed",
-            color: expanding ? "#a3a3a3" : "#f97316",
-            border: "1px solid rgba(249,115,22,0.3)",
-            cursor: expanding ? "wait" : "pointer",
-            display: "flex", alignItems: "center", gap: "6px",
-          }}
-        >
-          {expanding ? (
-            <>
-              <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24">
-                <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="#f97316" strokeWidth="4" fill="none" />
-                <path style={{ opacity: 0.75 }} fill="#f97316" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              확장 중...
-            </>
-          ) : (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-              AI로 더 풍부하게
-            </>
+      {/* 버튼 영역 */}
+      {value.trim().length > 0 && apiKey && (
+        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {/* 30자 미만: 더 풍부하게 */}
+          {value.trim().length < 30 && (
+            <button onClick={handleExpand} disabled={expanding}
+              style={{ padding: "8px 16px", borderRadius: "9999px", fontSize: "12px", fontWeight: 600,
+                backgroundColor: expanding ? "#e5e5e5" : "#fff7ed", color: expanding ? "#a3a3a3" : "#f97316",
+                border: "1px solid rgba(249,115,22,0.3)", cursor: expanding ? "wait" : "pointer",
+                display: "flex", alignItems: "center", gap: "6px" }}>
+              {expanding ? "확장 중..." : "⚡ AI로 더 풍부하게"}
+            </button>
           )}
-        </button>
+
+          {/* 레퍼런스 추천 */}
+          <button onClick={async () => {
+            if (!value.trim()) return;
+            if (!confirm("AI가 핵심 문장을 분석해서 참고할 곡과 설정을 추천합니다. API 크레딧이 소모됩니다.")) return;
+            setAnalyzing(true);
+            try {
+              const res = await fetch("/api/lyrics", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: `핵심 문장: "${value.trim()}"
+
+이 문장의 감정, 분위기, 주제를 분석해서 아래를 JSON으로만 출력해줘:
+{
+  "refs": "참고할 곡 3개 (아티스트 - 곡명, 한 줄 이유). 줄바꿈으로 구분",
+  "genre": "가장 어울리는 장르 1개 (영문, GenreSelector 옵션과 동일하게)",
+  "tempo": "BPM 슬롯 (very_slow/slow/mid_slow/mid/mid_fast/fast 중 1개)",
+  "era": "시대 (80s/90s/2000s/2010s/2020s/vintage/futuristic 중 1개)",
+  "texture": "질감 (lofi_warm/clean_digital/analog_vintage/raw_gritty/dreamy/spacious/dense/minimal 중 1개)",
+  "reverb": "리버브 (dry/room/hall/cathedral/lofi_filter/plate 중 1개)",
+  "vibe": "느낌 키워드 2~3개 (한국어, 쉼표 구분)"
+}
+JSON만 출력. 설명 없이.`, apiKey, provider }),
+              });
+              const data = await res.json();
+              if (data.lyrics) {
+                try {
+                  const jsonMatch = data.lyrics.match(/\{[\s\S]*\}/);
+                  if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    setRecommendation({ refs: parsed.refs, settings: {
+                      genre: parsed.genre || "", tempo: parsed.tempo || "", era: parsed.era || "",
+                      texture: parsed.texture || "", reverb: parsed.reverb || "", vibe: parsed.vibe || "",
+                    }});
+                  }
+                } catch { /* 파싱 실패 */ }
+              }
+            } catch {}
+            setAnalyzing(false);
+          }} disabled={analyzing}
+            style={{ padding: "8px 16px", borderRadius: "9999px", fontSize: "12px", fontWeight: 600,
+              backgroundColor: analyzing ? "#e5e5e5" : "#fff", color: analyzing ? "#a3a3a3" : "#0a0a0a",
+              border: "1px solid #d4d4d4", cursor: analyzing ? "wait" : "pointer",
+              display: "flex", alignItems: "center", gap: "6px" }}>
+            {analyzing ? "분석 중..." : "🔍 레퍼런스 추천받기"}
+          </button>
+        </div>
+      )}
+
+      {/* 추천 결과 */}
+      {recommendation && (
+        <div style={{ padding: "14px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px" }}>AI 추천 레퍼런스</p>
+          <pre style={{ fontSize: "11px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.6", marginBottom: "10px" }}>
+            {recommendation.refs}
+          </pre>
+          <p style={{ fontSize: "10px", color: "#a3a3a3", marginBottom: "8px" }}>
+            추천 설정: {recommendation.settings.genre} / {recommendation.settings.vibe} / {recommendation.settings.era}
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => {
+              onAutoFill?.(recommendation.settings);
+              onSubmit(value.trim());
+            }} style={{ flex: 1, padding: "10px", borderRadius: "10px", backgroundColor: "#f97316",
+              color: "#fff", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer" }}>
+              추천 설정 적용 + 시작
+            </button>
+            <button onClick={() => {
+              setRecommendation(null);
+              onSubmit(value.trim());
+            }} style={{ padding: "10px 16px", borderRadius: "10px", border: "1px solid #e5e5e5",
+              backgroundColor: "#fff", fontSize: "12px", color: "#737373", cursor: "pointer" }}>
+              직접 설정
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -121,6 +181,7 @@ function OneLinerInput({ placeholder, onSubmit, apiKey, provider }: {
 interface ChatFlowProps {
   onComplete: (inputs: SunoInput) => void;
   onInputChange: (inputs: Partial<SunoInput>) => void;
+  onAutoFill?: (settings: Record<string, string>) => void;
   apiKey?: string;
   provider?: string;
 }
@@ -138,7 +199,7 @@ const DEFAULT_INPUT: SunoInput = {
   language: "",
 };
 
-export default function ChatFlow({ onComplete, onInputChange, apiKey, provider }: ChatFlowProps) {
+export default function ChatFlow({ onComplete, onInputChange, onAutoFill, apiKey, provider }: ChatFlowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [inputs, setInputs] = useState<SunoInput>(DEFAULT_INPUT);
@@ -357,6 +418,13 @@ export default function ChatFlow({ onComplete, onInputChange, apiKey, provider }
                 <OneLinerInput
                   placeholder={step.placeholder}
                   onSubmit={(val) => handleAnswer(step.id, val)}
+                  onAutoFill={(settings) => {
+                    // 추천 설정으로 inputs 자동 채우기
+                    const filled = { ...inputs, ...settings };
+                    setInputs(filled as SunoInput);
+                    onInputChange(filled);
+                    onAutoFill?.(settings);
+                  }}
                   apiKey={apiKey}
                   provider={provider}
                 />

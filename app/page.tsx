@@ -261,6 +261,9 @@ export default function Home() {
                 key={chatKey}
                 onComplete={handleComplete}
                 onInputChange={handleInputChange}
+                onAutoFill={(settings) => {
+                  setCurrentInputs((prev) => ({ ...prev, ...settings }));
+                }}
                 apiKey={apiKey}
                 provider={provider || undefined}
               />
