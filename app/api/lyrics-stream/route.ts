@@ -3,18 +3,21 @@ import { NextRequest } from "next/server";
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
-  const { prompt, apiKey, provider } = await req.json();
+  const { prompt, apiKey, provider, useOpus } = await req.json();
 
   if (!apiKey || !prompt || !provider) {
     return new Response(JSON.stringify({ error: "필수값 누락" }), { status: 400 });
   }
+
+  // useOpus=true일 때만 Opus, 기본은 Sonnet
+  const claudeModel = useOpus ? "claude-opus-4-20250514" : "claude-sonnet-4-20250514";
 
   try {
     if (provider === "claude") {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: "claude-opus-4-20250514", max_tokens: 4096, stream: true, messages: [{ role: "user", content: prompt }] }),
+        body: JSON.stringify({ model: claudeModel, max_tokens: 4096, stream: true, messages: [{ role: "user", content: prompt }] }),
       });
       if (!res.ok) { const e = await res.json(); return new Response(JSON.stringify({ error: e.error?.message || "Claude 실패" }), { status: res.status }); }
       return new Response(transformClaudeSSE(res.body!), { headers: sseHeaders() });

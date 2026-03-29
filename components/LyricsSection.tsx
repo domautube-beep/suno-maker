@@ -549,7 +549,7 @@ export default function LyricsSection({
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: promptText, apiKey, provider }),
+        body: JSON.stringify({ prompt: promptText, apiKey, provider, useOpus: true }),
       });
 
       if (!res.ok) {
@@ -639,7 +639,7 @@ export default function LyricsSection({
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, apiKey, provider }),
+        body: JSON.stringify({ prompt, apiKey, provider, useOpus: true }),
       });
 
       if (!res.ok) {
@@ -1303,7 +1303,7 @@ density: short/medium/long 중`,
 - 같은 사람이 다른 날, 다른 장소에서 다른 마음으로 쓴 곡처럼`;
                   const res = await fetch("/api/lyrics-stream", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt, apiKey, provider }),
+                    body: JSON.stringify({ prompt, apiKey, provider, useOpus: true }),
                   });
                   if (!res.ok) { const e = await res.json(); setError(e.error || "실패"); setGenerating(false); return; }
                   const reader = res.body?.getReader();
