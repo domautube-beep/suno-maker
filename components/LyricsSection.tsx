@@ -677,8 +677,16 @@ export default function LyricsSection({
     setGenerating(false);
   };
 
+  // 산문시/STEP 마커 제거하고 가사만 추출
+  const extractLyricsOnly = (text: string): string => {
+    return text
+      .replace(/---PROSE---[\s\S]*?---END_PROSE---\n*/g, "")
+      .replace(/^=== STEP \d[\s\S]*?(?=\[VOCAL_PROFILE|\[SECTION|$)/gm, "")
+      .trim();
+  };
+
   const handleCopyLyrics = async () => {
-    await navigator.clipboard.writeText(generatedLyrics);
+    await navigator.clipboard.writeText(extractLyricsOnly(generatedLyrics));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
