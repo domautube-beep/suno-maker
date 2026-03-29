@@ -55,6 +55,9 @@ export default function Home() {
   // 프리셋 변경 시 localStorage 동기화
   useEffect(() => { localStorage.setItem("r3_style_presets", JSON.stringify(stylePresets)); }, [stylePresets]);
 
+  // 스타일 워싱
+  const [washing, setWashing] = useState(false);
+
   // 모바일 프리뷰 바텀시트
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
@@ -431,6 +434,61 @@ export default function Home() {
                       style={{ padding: "7px 16px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
                         backgroundColor: "#f97316", color: "#fff", border: "none", cursor: "pointer" }}>
                       다시 생성
+                    </button>
+                    <button
+                      disabled={washing || !output.style}
+                      onClick={async () => {
+                        if (!output.style || washing) return;
+                        setWashing(true);
+                        try {
+                          const res = await fetch("/api/lyrics-stream", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              prompt: `아래 Suno Style of Music 프롬프트를 워싱(정리)해줘.
+
+규칙:
+1. 장르/시대감 충돌을 찾아서 해소해라 (예: "1990s trap"은 모순 — 90s-inspired melancholic trap 등으로 정리)
+2. 박자가 특이하면(5/4, 7/8 등) 의도된 실험인지 판단하고, 장르와 안 맞으면 4/4로 바꿔라
+3. 서로 모순되는 악기/질감/무드 조합을 정리해라 (예: industrial + warm intimate가 동시에 너무 강하면 하나를 약화)
+4. 정보량이 과하면 핵심 우선순위를 정해서 덜 중요한 걸 빼라
+5. 미완성 문장, 잘린 단어, 오타를 수정해라
+6. 결과는 반드시 850~900자 내외로 맞춰라
+7. Suno가 파싱하기 좋은 흐름으로 정리: 장르→템포→드럼→베이스→멜로디→질감→보컬→전개 순서
+8. 원래 의도한 무드와 감성은 최대한 유지해라
+
+원본 프롬프트:
+${output.style}
+
+워싱된 프롬프트만 출력 (설명 없이):`,
+                              apiKey, provider,
+                            }),
+                          });
+                          if (!res.ok) { setWashing(false); return; }
+                          const reader = res.body?.getReader();
+                          if (!reader) { setWashing(false); return; }
+                          const decoder = new TextDecoder();
+                          let full = "";
+                          while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            for (const line of decoder.decode(value, { stream: true }).split("\n")) {
+                              if (!line.startsWith("data: ")) continue;
+                              const d = line.slice(6).trim();
+                              if (d === "[DONE]") break;
+                              try { const p = JSON.parse(d); if (p.text) full += p.text; } catch {}
+                            }
+                          }
+                          if (full.trim()) {
+                            setOutput((prev) => prev ? { ...prev, style: full.trim() } : prev);
+                          }
+                        } catch {}
+                        setWashing(false);
+                      }}
+                      style={{ padding: "7px 16px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                        backgroundColor: washing ? "#f5f5f5" : "#0a0a0a", color: washing ? "#a3a3a3" : "#fff",
+                        border: "none", cursor: washing ? "wait" : "pointer" }}>
+                      {washing ? "워싱 중..." : "워싱하기"}
                     </button>
                     <button onClick={() => {
                       const name = prompt("프리셋 이름을 입력하세요 (예: R&B 감성)");
