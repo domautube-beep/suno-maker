@@ -408,9 +408,10 @@ export default function Home() {
                   charLimit={900}
                   onEdit={(newContent) => setOutput((prev) => prev ? { ...prev, style: newContent } : prev)}
                 />
-                <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "-8px" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginTop: "-4px" }}>
                   <button onClick={handleRegenerateStyle}
-                    style={{ fontSize: "11px", color: "#f97316", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
+                    style={{ padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                      backgroundColor: "#fff7ed", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer" }}>
                     스타일 다시 생성
                   </button>
                   <button onClick={() => {
@@ -420,35 +421,31 @@ export default function Home() {
                     presets[name] = { style: output.style, notes: forensicLog, inputs: currentInputs };
                     localStorage.setItem("r3_style_presets", JSON.stringify(presets));
                     alert(`"${name}" 프리셋이 저장되었습니다.`);
-                  }} style={{ fontSize: "11px", color: "#737373", background: "none", border: "none", cursor: "pointer" }}>
+                  }} style={{ padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 500,
+                    backgroundColor: "#fff", color: "#737373", border: "1px solid #e5e5e5", cursor: "pointer" }}>
                     프리셋 저장
                   </button>
-                </div>
 
-                {/* 프리셋 불러오기 */}
-                {(() => {
-                  const presets = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("r3_style_presets") || "{}") : {};
-                  const keys = Object.keys(presets);
-                  if (keys.length === 0) return null;
-                  return (
-                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "-4px" }}>
-                      <span style={{ fontSize: "10px", color: "#a3a3a3", lineHeight: "28px" }}>프리셋:</span>
-                      {keys.map((k) => (
-                        <button key={k} onClick={() => {
-                          const p = presets[k];
-                          setOutput((prev) => prev ? { ...prev, style: p.style } : { style: p.style, lyrics: "" });
-                          setForensicLog(p.notes || "");
-                          if (p.inputs) setCurrentInputs(p.inputs);
-                        }} style={{
-                          padding: "4px 10px", borderRadius: "9999px", fontSize: "10px",
-                          backgroundColor: "#fff", color: "#525252", border: "1px solid #e5e5e5", cursor: "pointer",
-                        }}>
-                          {k}
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })()}
+                  {/* 저장된 프리셋 */}
+                  {(() => {
+                    const presets = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("r3_style_presets") || "{}") : {};
+                    const keys = Object.keys(presets);
+                    if (keys.length === 0) return null;
+                    return keys.map((k) => (
+                      <button key={k} onClick={() => {
+                        const p = presets[k];
+                        setOutput((prev) => prev ? { ...prev, style: p.style } : { style: p.style, lyrics: "" });
+                        setForensicLog(p.notes || "");
+                        if (p.inputs) setCurrentInputs(p.inputs);
+                      }} style={{
+                        padding: "4px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 500,
+                        backgroundColor: "#0a0a0a", color: "#fff", border: "none", cursor: "pointer",
+                      }}>
+                        {k}
+                      </button>
+                    ));
+                  })()}
+                </div>
                 </div>
 
                 {/* Lyrics — 가사 설정 + 생성 */}
