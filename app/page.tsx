@@ -11,6 +11,7 @@ import OutputBlock from "@/components/OutputBlock";
 import LyricsSection from "@/components/LyricsSection";
 import ProgressBar from "@/components/ProgressBar";
 import ApiKeyGate, { Provider } from "@/components/ApiKeyGate";
+import { calculateCost, formatCost, formatKrw } from "@/lib/costTracker";
 
 export default function Home() {
   // API 키 — sessionStorage (새로고침 유지, 탭 닫으면 사라짐)
@@ -54,6 +55,10 @@ export default function Home() {
 
   // 프리셋 변경 시 localStorage 동기화
   useEffect(() => { localStorage.setItem("r3_style_presets", JSON.stringify(stylePresets)); }, [stylePresets]);
+
+  // 비용 추적
+  const [totalCostUsd, setTotalCostUsd] = useState(0);
+  const [callCount, setCallCount] = useState(0);
 
   // 스타일 워싱
   const [washing, setWashing] = useState(false);
@@ -185,6 +190,11 @@ export default function Home() {
       setStreamingText("");
       // 스타일 재생성 시 이전 가사 초기화
       sessionStorage.removeItem("r3_lyrics");
+      // 비용 추적
+      const promptText = JSON.stringify(inputs);
+      const cost = calculateCost(promptText, fullText, provider || "claude");
+      setTotalCostUsd((prev) => prev + cost.costUsd);
+      setCallCount((prev) => prev + 1);
     } catch {
       setForensicLog("[에러] API 호출 실패");
     }
@@ -297,7 +307,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen bg-background relative">
-      <Header phase={phase} onReset={handleReset} />
+      <Header phase={phase} onReset={handleReset} totalCostUsd={totalCostUsd} callCount={callCount} />
 
       {/* 토스트 */}
       {showToast && (
