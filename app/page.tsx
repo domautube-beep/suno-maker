@@ -436,6 +436,7 @@ export default function Home() {
                       다시 생성
                     </button>
                     <button
+                      title="장르/시대감 충돌 해소, 모순되는 조합 정리, 글자수 900자 조정 — Suno가 잘 파싱할 수 있도록 프롬프트를 최적화합니다"
                       disabled={washing || !output.style}
                       onClick={async () => {
                         if (!output.style || washing) return;
