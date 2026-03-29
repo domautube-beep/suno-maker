@@ -320,12 +320,30 @@ export default function LyricsSection({
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
 
     if (reference.trim()) {
-      parts.push(`=== 레퍼런스 곡 (방향의 50% 참고) ===`);
-      parts.push(`"${reference.trim()}"의 느낌, 감성, 가사 스타일, 곡 구조를 50% 참고하되:`);
-      parts.push(`- 아티스트명이나 곡 제목을 가사/Style에 직접 언급하지 마`);
-      parts.push(`- 가사를 그대로 베끼지 마`);
-      parts.push(`- 레퍼런스 곡의 "감정의 결"과 "표현 방식"만 흡수`);
-      parts.push(`- 나머지 50%는 사용자 설정(핵심 문장, 장르, 느낌 등)에서 가져와`);
+      parts.push(`=== 레퍼런스 곡 분석 + 반영 ===`);
+      parts.push(`레퍼런스: "${reference.trim()}"`);
+      parts.push(``);
+      parts.push(`이 곡을 아래 4단계로 분석하고, 결과를 가사에 50% 반영해라:`);
+      parts.push(``);
+      parts.push(`1단계 — 가사 구조 분석:`);
+      parts.push(`  이 곡의 Verse/Chorus/Bridge 각 섹션이 어떤 역할을 하는지 파악`);
+      parts.push(`  서사 전개 방식 (시간순/회상/대비/반복 등) 파악`);
+      parts.push(``);
+      parts.push(`2단계 — 가사 진행법 분석:`);
+      parts.push(`  감정이 어떻게 흘러가는지 (잔잔→폭발? 일정? 반전?)`);
+      parts.push(`  Verse에서 Chorus로 넘어갈 때 어떤 트리거를 쓰는지`);
+      parts.push(`  Hook이 어떤 방식으로 기억에 남는지 (반복? 대비? 질문?)`);
+      parts.push(``);
+      parts.push(`3단계 — 작성법 분석:`);
+      parts.push(`  이 곡이 쓰는 수사법 (비유/대구/직설/나열 등)`);
+      parts.push(`  줄 길이와 리듬 패턴`);
+      parts.push(`  단어 선택의 수준 (일상어/시적/거리체 등)`);
+      parts.push(``);
+      parts.push(`4단계 — 반영:`);
+      parts.push(`  위 분석 결과의 구조/진행법/작성법을 50% 참고하되,`);
+      parts.push(`  사용자의 핵심 문장과 설정을 주제로 새 가사를 작성`);
+      parts.push(`  아티스트명/곡명 직접 언급 금지, 가사 베끼기 금지`);
+      parts.push(`  레퍼런스의 "뼈대"를 가져오고 "살"은 완전히 새로 쓰는 것`);
       parts.push(``);
     }
 
