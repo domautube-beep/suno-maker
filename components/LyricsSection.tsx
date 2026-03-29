@@ -328,17 +328,19 @@ export default function LyricsSection({
     // 송폼 → 라벨로 변환
     const songFormLabels = songFormBlocks.map((id) => SONG_BLOCKS.find((b) => b.id === id)?.label || id);
 
-    if (reference.trim()) {
-      parts.push(`=== 레퍼런스 곡 (50% 반영) ===`);
+    if (reference.trim() && refAnalysis) {
+      parts.push(`=== 레퍼런스 곡 — 반드시 적용 ===`);
       parts.push(`레퍼런스: "${reference.trim()}"`);
-      if (refAnalysis) {
-        parts.push(`분석 결과:`);
-        parts.push(refAnalysis);
-      }
-      parts.push(`이 분석 결과의 구조/진행법/작성법을 50% 참고하되,`);
-      parts.push(`사용자의 핵심 문장과 설정을 주제로 새 가사를 작성.`);
+      parts.push(``);
+      parts.push(refAnalysis);
+      parts.push(``);
+      parts.push(`위 분석 결과를 가사에 반드시 반영해라:`);
+      parts.push(`1. "장르 가사법에서 따라야 할 것 3가지"를 그대로 적용`);
+      parts.push(`2. "모티프 운용법에서 배울 것"을 이번 가사의 모티프 구조에 적용`);
+      parts.push(`3. "수사법 중 적용할 것"을 가사 작성 시 실제로 사용`);
+      parts.push(`4. 레퍼런스의 구조(Verse/Chorus/Bridge 역할 분배)를 참고`);
+      parts.push(`5. 라임/플로우 패턴을 참고하되, 가사 내용은 완전히 새로 써라`);
       parts.push(`아티스트명/곡명 직접 언급 금지. 가사 베끼기 금지.`);
-      parts.push(`레퍼런스의 "뼈대"를 가져오고 "살"은 완전히 새로 쓰는 것.`);
       parts.push(``);
     }
 
