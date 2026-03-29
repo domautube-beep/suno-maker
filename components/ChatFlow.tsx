@@ -20,7 +20,7 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
   placeholder?: string;
   onSubmit: (val: string) => void;
   onAutoFill?: (settings: Record<string, string>) => void;
-  onQuickStart?: (oneLiner: string, settings: Record<string, string>) => void;
+  onQuickStart?: (oneLiner: string, settings: Record<string, string>, refInfo?: string) => void;
   apiKey?: string;
   provider?: string;
 }) {
@@ -216,10 +216,11 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
           <div style={{ display: "flex", gap: "8px" }}>
             <button onClick={() => {
               if (selectedRef < 0) { alert("레퍼런스를 선택해주세요."); return; }
-              const rec = recommendations[selectedRef];
+              const rec = recommendations![selectedRef];
               const settings = { genre: rec.genre, tempo: rec.tempo, era: rec.era, texture: rec.texture, reverb: rec.reverb, vibe: rec.vibe };
+              const refInfo = `${rec.artist} - ${rec.title}`;
               onAutoFill?.(settings);
-              onQuickStart?.(value.trim(), settings);
+              onQuickStart?.(value.trim(), settings, refInfo);
             }} disabled={selectedRef < 0} style={{
               flex: 1, padding: "10px", borderRadius: "10px",
               backgroundColor: selectedRef >= 0 ? "#f97316" : "#e5e5e5",
@@ -490,13 +491,13 @@ export default function ChatFlow({ onComplete, onQuickStart: onQuickStartProp, o
                     onInputChange(filled);
                     onAutoFill?.(settings);
                   }}
-                  onQuickStart={(oneLiner, settings) => {
+                  onQuickStart={(oneLiner, settings, refInfo) => {
                     const filled = { ...DEFAULT_INPUT, oneLiner, ...settings, language: "ko" } as SunoInput;
+                    const filledWithRef = { ...filled, _reference: refInfo || "" } as unknown as SunoInput;
                     setInputs(filled);
-                    onInputChange(filled);
-                    // 퀵스타트: Style + Lyrics 한방 생성
+                    onInputChange(filledWithRef as unknown as Partial<SunoInput>);
                     if (onQuickStartProp) {
-                      onQuickStartProp(filled);
+                      onQuickStartProp(filledWithRef);
                     } else {
                       onComplete(filled);
                     }

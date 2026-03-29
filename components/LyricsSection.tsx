@@ -413,10 +413,9 @@ export default function LyricsSection({
       }
       setSongFormBlocks(form);
 
-      // 레퍼런스 자동 설정
-      if (currentSettings?.oneLiner && !reference) {
-        setReference(currentSettings.oneLiner);
-      }
+      // 레퍼런스 자동 설정 (퀵스타트에서 전달된 곡 정보)
+      const refText = (currentSettings as Record<string, string>)?._reference || "";
+      if (refText) setReference(refText);
 
       // 직접 프롬프트 빌드 + API 호출 (state 대기 불필요)
       const directGenerate = async () => {
@@ -441,6 +440,7 @@ export default function LyricsSection({
         const prompt = [
           `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
           coreMessage ? `\n=== 핵심 문장 ===\n"${coreMessage}"\n` : "",
+          refText ? `=== 레퍼런스 곡 (50% 반영) ===\n"${refText}"의 구조/진행법/작성법을 50% 참고. 아티스트명/곡명 언급 금지. 가사 베끼기 금지.\n` : "",
           `=== 가사 작성 규칙 ===`,
           buildLyricsRules(bannedWords),
           `\n=== Style of Music ===\n${style}`,
