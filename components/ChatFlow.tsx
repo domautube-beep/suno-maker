@@ -17,10 +17,11 @@ import ConfirmCard from "./ConfirmCard";
 import ProgressBar from "./ProgressBar";
 
 // 핵심 문장 입력 + AI 확장 + 레퍼런스 추천
-function OneLinerInput({ placeholder, onSubmit, onAutoFill, apiKey, provider }: {
+function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey, provider }: {
   placeholder?: string;
   onSubmit: (val: string) => void;
   onAutoFill?: (settings: Record<string, string>) => void;
+  onQuickStart?: (oneLiner: string, settings: Record<string, string>) => void;
   apiKey?: string;
   provider?: string;
 }) {
@@ -159,7 +160,7 @@ JSON만 출력. 설명 없이.`, apiKey, provider }),
           <div style={{ display: "flex", gap: "8px" }}>
             <button onClick={() => {
               onAutoFill?.(recommendation.settings);
-              onSubmit(value.trim());
+              onQuickStart?.(value.trim(), recommendation.settings);
             }} style={{ flex: 1, padding: "10px", borderRadius: "10px", backgroundColor: "#f97316",
               color: "#fff", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer" }}>
               추천 설정 적용 + 시작
@@ -419,11 +420,17 @@ export default function ChatFlow({ onComplete, onInputChange, onAutoFill, apiKey
                   placeholder={step.placeholder}
                   onSubmit={(val) => handleAnswer(step.id, val)}
                   onAutoFill={(settings) => {
-                    // 추천 설정으로 inputs 자동 채우기
                     const filled = { ...inputs, ...settings };
                     setInputs(filled as SunoInput);
                     onInputChange(filled);
                     onAutoFill?.(settings);
+                  }}
+                  onQuickStart={(oneLiner, settings) => {
+                    // Chat Flow 스킵 → 바로 result phase
+                    const filled = { ...DEFAULT_INPUT, oneLiner, ...settings } as SunoInput;
+                    setInputs(filled);
+                    onInputChange(filled);
+                    onComplete(filled);
                   }}
                   apiKey={apiKey}
                   provider={provider}
