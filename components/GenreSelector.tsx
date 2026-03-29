@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GENRE_CATEGORIES, TOTAL_GENRE_COUNT } from "@/lib/genreData";
+import { GENRE_CATEGORIES, TOTAL_GENRE_COUNT, GENRE_DESCRIPTIONS } from "@/lib/genreData";
 
 interface GenreSelectorProps {
   onSubmit: (value: string) => void;
@@ -114,6 +114,7 @@ export default function GenreSelector({ onSubmit, onSkip, oneLiner = "" }: Genre
               <button
                 key={genre}
                 onClick={() => toggleOption(genre)}
+                title={GENRE_DESCRIPTIONS[genre] || ""}
                 style={{
                   backgroundColor: "#fff7ed",
                   color: "#f97316",
@@ -166,6 +167,7 @@ export default function GenreSelector({ onSubmit, onSkip, oneLiner = "" }: Genre
                 <button
                   key={opt}
                   onClick={() => toggleOption(opt)}
+                  title={GENRE_DESCRIPTIONS[opt] || ""}
                   style={{
                     backgroundColor: isSelected ? "#0a0a0a" : "#ffffff",
                     color: isSelected ? "#ffffff" : isRecommended ? "#f97316" : "#737373",
