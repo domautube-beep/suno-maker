@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
   const { prompt, apiKey, provider } = await req.json();
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4096, stream: true, messages: [{ role: "user", content: prompt }] }),
+        body: JSON.stringify({ model: "claude-opus-4-20250514", max_tokens: 4096, stream: true, messages: [{ role: "user", content: prompt }] }),
       });
       if (!res.ok) { const e = await res.json(); return new Response(JSON.stringify({ error: e.error?.message || "Claude 실패" }), { status: res.status }); }
       return new Response(transformClaudeSSE(res.body!), { headers: sseHeaders() });
