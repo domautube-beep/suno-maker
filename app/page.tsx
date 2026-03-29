@@ -177,9 +177,11 @@ export default function Home() {
       const style = styleMatch ? styleMatch[1].trim() : fullText;
       const notes = notesMatch ? notesMatch[1].trim() : "";
 
-      setOutput((prev) => prev ? { ...prev, style } : { style, lyrics: "" });
+      setOutput((prev) => prev ? { ...prev, style, lyrics: "" } : { style, lyrics: "" });
       setForensicLog(notes);
       setStreamingText("");
+      // 스타일 재생성 시 이전 가사 초기화
+      sessionStorage.removeItem("r3_lyrics");
     } catch {
       setForensicLog("[에러] API 호출 실패");
     }
