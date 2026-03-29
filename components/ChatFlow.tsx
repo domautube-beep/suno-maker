@@ -27,7 +27,11 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
   const [value, setValue] = useState("");
   const [expanding, setExpanding] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [recommendation, setRecommendation] = useState<{ refs: string; settings: Record<string, string> } | null>(null);
+  const [recommendations, setRecommendations] = useState<Array<{
+    artist: string; title: string; reason: string;
+    genre: string; tempo: string; era: string; texture: string; reverb: string; vibe: string;
+  }> | null>(null);
+  const [selectedRef, setSelectedRef] = useState(-1);
 
   const handleExpand = async () => {
     if (!value.trim() || !apiKey || !provider) return;
@@ -125,27 +129,32 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
 - 프로덕션 접근법(편곡 밀도, 리듬 패턴, 공간감)이 참고할 만한 곡
 - 가사의 "작법"(서사 구조, 수사법, 줄 길이)이 참고할 만한 곡
 
-아래 JSON으로만 출력. 설명 없이:
-{
-  "refs": "참고곡 3개. 각 줄: 아티스트 - 곡명, [프로덕션/가사/감정 중 참고 이유 1줄]. 줄바꿈 구분",
-  "genre": "장르 1개 (K-Pop/Pop/Hip-Hop/Trap/Boom Bap/R&B/Neo Soul/Ballad/Lo-Fi/EDM/Rock/Indie Rock/Punk/Metal/House/Deep House/Afro House/UK Garage/Techno/Ambient/Synthwave/Jazz/Blues/Cinematic/Trot/Reggae/Latin/Folk/Acoustic/Gospel 중)",
-  "tempo": "very_slow/slow/mid_slow/mid/mid_fast/fast/very_fast 중 1개",
-  "era": "80s/90s/2000s/2010s/2020s/vintage/futuristic 중 1개",
-  "texture": "lofi_warm/clean_digital/analog_vintage/raw_gritty/dreamy/spacious/dense/minimal 중 1개",
-  "reverb": "dry/room/hall/cathedral/lofi_filter/plate 중 1개",
-  "vibe": "느낌 2~3개 한국어 (어두운/몽환적/밝은/감성적/에너지틱/따뜻한/차가운/긴장감/편안한/웅장한/거친/중독적/우울한/희망적/나른한/세련된/그루비/서정적 중)"
-}`, apiKey, provider }),
+아래 JSON 배열로만 출력. 설명 없이. 3개 곡 각각 별도 설정:
+[
+  {
+    "artist": "아티스트명",
+    "title": "곡명",
+    "reason": "이 곡을 참고하는 이유 1줄 (프로덕션/가사/감정 관점)",
+    "genre": "장르 (Pop/K-Pop/Hip-Hop/Trap/R&B/Ballad/Lo-Fi/EDM/Rock/House/Deep House/Afro House/Techno/Ambient/Synthwave/Jazz/Blues/Cinematic/Folk/Acoustic 중)",
+    "tempo": "very_slow/slow/mid_slow/mid/mid_fast/fast 중",
+    "era": "80s/90s/2000s/2010s/2020s/vintage/futuristic 중",
+    "texture": "lofi_warm/clean_digital/analog_vintage/raw_gritty/dreamy/spacious/dense/minimal 중",
+    "reverb": "dry/room/hall/cathedral/lofi_filter/plate 중",
+    "vibe": "느낌 2~3개 한국어 쉼표 구분"
+  }
+]
+3개 곡은 서로 다른 장르/시대/질감으로 다양하게 추천해라. 같은 설정 3개가 나오면 안 됨.`, apiKey, provider }),
               });
               const data = await res.json();
               if (data.lyrics) {
                 try {
-                  const jsonMatch = data.lyrics.match(/\{[\s\S]*\}/);
-                  if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    setRecommendation({ refs: parsed.refs, settings: {
-                      genre: parsed.genre || "", tempo: parsed.tempo || "", era: parsed.era || "",
-                      texture: parsed.texture || "", reverb: parsed.reverb || "", vibe: parsed.vibe || "",
-                    }});
+                  const arrMatch = data.lyrics.match(/\[[\s\S]*\]/);
+                  if (arrMatch) {
+                    const parsed = JSON.parse(arrMatch[0]);
+                    if (Array.isArray(parsed)) {
+                      setRecommendations(parsed);
+                      setSelectedRef(-1);
+                    }
                   }
                 } catch { /* 파싱 실패 */ }
               }
@@ -161,26 +170,57 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
         </div>
       )}
 
-      {/* 추천 결과 */}
-      {recommendation && (
+      {/* 추천 결과 — 3개 카드 선택 */}
+      {recommendations && (
         <div style={{ padding: "14px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "8px" }}>AI 추천 레퍼런스</p>
-          <pre style={{ fontSize: "11px", color: "#525252", whiteSpace: "pre-wrap", lineHeight: "1.6", marginBottom: "10px" }}>
-            {recommendation.refs}
-          </pre>
-          <p style={{ fontSize: "10px", color: "#a3a3a3", marginBottom: "8px" }}>
-            추천 설정: {recommendation.settings.genre} / {recommendation.settings.vibe} / {recommendation.settings.era}
-          </p>
+          <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "10px" }}>AI 추천 레퍼런스 — 하나를 선택하세요</p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
+            {recommendations.map((rec, idx) => (
+              <button key={idx} onClick={() => setSelectedRef(idx)} style={{
+                padding: "12px", borderRadius: "10px", textAlign: "left",
+                backgroundColor: selectedRef === idx ? "#0a0a0a" : "#fff",
+                color: selectedRef === idx ? "#fff" : "#0a0a0a",
+                border: selectedRef === idx ? "2px solid #f97316" : "1px solid #e5e5e5",
+                cursor: "pointer", transition: "all 0.15s",
+              }}>
+                <p style={{ fontSize: "12px", fontWeight: 700, marginBottom: "4px" }}>
+                  {rec.artist} - {rec.title}
+                </p>
+                <p style={{ fontSize: "10px", color: selectedRef === idx ? "#a3a3a3" : "#737373", marginBottom: "6px" }}>
+                  {rec.reason}
+                </p>
+                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                  {[rec.genre, rec.era, rec.vibe, rec.texture].filter(Boolean).map((tag, i) => (
+                    <span key={i} style={{
+                      padding: "2px 8px", borderRadius: "9999px", fontSize: "9px",
+                      backgroundColor: selectedRef === idx ? "#333" : "#f5f5f5",
+                      color: selectedRef === idx ? "#d4d4d4" : "#737373",
+                    }}>{tag}</span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+
           <div style={{ display: "flex", gap: "8px" }}>
             <button onClick={() => {
-              onAutoFill?.(recommendation.settings);
-              onQuickStart?.(value.trim(), recommendation.settings);
-            }} style={{ flex: 1, padding: "10px", borderRadius: "10px", backgroundColor: "#f97316",
-              color: "#fff", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer" }}>
-              추천 설정 적용 + 시작
+              if (selectedRef < 0) { alert("레퍼런스를 선택해주세요."); return; }
+              const rec = recommendations[selectedRef];
+              const settings = { genre: rec.genre, tempo: rec.tempo, era: rec.era, texture: rec.texture, reverb: rec.reverb, vibe: rec.vibe };
+              onAutoFill?.(settings);
+              onQuickStart?.(value.trim(), settings);
+            }} disabled={selectedRef < 0} style={{
+              flex: 1, padding: "10px", borderRadius: "10px",
+              backgroundColor: selectedRef >= 0 ? "#f97316" : "#e5e5e5",
+              color: selectedRef >= 0 ? "#fff" : "#a3a3a3",
+              fontSize: "12px", fontWeight: 600, border: "none",
+              cursor: selectedRef >= 0 ? "pointer" : "not-allowed",
+            }}>
+              선택한 레퍼런스로 시작
             </button>
             <button onClick={() => {
-              setRecommendation(null);
+              setRecommendations(null);
               onSubmit(value.trim());
             }} style={{ padding: "10px 16px", borderRadius: "10px", border: "1px solid #e5e5e5",
               backgroundColor: "#fff", fontSize: "12px", color: "#737373", cursor: "pointer" }}>
