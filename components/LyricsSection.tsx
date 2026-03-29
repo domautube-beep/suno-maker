@@ -771,11 +771,12 @@ density: short/medium/long 중`,
                       try { const p = JSON.parse(d); if (p.text) { full += p.text; setRefAnalysis(full); } } catch {}
                     }
                   }
-                  // 설정 자동 채우기
-                  const settingsMatch = full.match(/---SETTINGS---\s*(\{[\s\S]*?\})/);
-                  if (settingsMatch) {
+                  // 설정 자동 채우기 — 다양한 JSON 포맷 대응
+                  const settingsBlock = full.match(/---SETTINGS---[\s\S]*/)?.[0] || "";
+                  const jsonMatch = settingsBlock.match(/\{[\s\S]*?\}/);
+                  if (jsonMatch) {
                     try {
-                      const s = JSON.parse(settingsMatch[1]);
+                      const s = JSON.parse(jsonMatch[0]);
                       if (typeof s.voiceType === "number") setVpVoice(s.voiceType);
                       if (typeof s.timbre === "number") setVpTimbre(s.timbre);
                       if (typeof s.delivery === "number") setVpDelivery(s.delivery);
@@ -796,8 +797,8 @@ density: short/medium/long 중`,
                         };
                         setSongFormBlocks(formMap[s.songForm] || formMap.pop);
                       }
-                      // 분석 텍스트에서 SETTINGS 부분 제거
-                      setRefAnalysis(full.replace(/---SETTINGS---[\s\S]*$/, "").trim());
+                      // 분석 텍스트에서 SETTINGS 부분 + 코드블록 제거
+                      setRefAnalysis(full.replace(/---SETTINGS---[\s\S]*$/, "").replace(/```[\s\S]*?```/g, "").trim());
                     } catch { /* 파싱 실패 — 분석 텍스트 그대로 유지 */ }
                   }
                 } catch {}
