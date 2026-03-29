@@ -90,14 +90,14 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
         </button>
       </div>
 
-      {/* 주제 추천 — 입력이 비어있을 때 */}
-      {!value.trim() && apiKey && (
+      {/* 주제 추천 — 항상 표시, 여러 번 가능 */}
+      {apiKey && (
         <button
           onClick={async () => {
             if (suggesting || !apiKey || !provider) return;
             setSuggesting(true);
             try {
-              const res = await fetch("/api/lyrics-stream", {
+              const res = await fetch("/api/lyrics", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -109,30 +109,13 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
 - 구체적인 장면이나 상황이 떠오르는 문장
 - 노래 가사의 방향을 잡을 수 있는 핵심 문장
 - 한국어로
-- 문장 하나만 출력. 설명, 인사, 번호, 따옴표 없이 문장만.
-
-예시 톤:
-- 새벽에 퇴근하다 본 첫 눈이 내 어깨에만 녹고 있었다
-- 네가 떠난 뒤로 냉장고가 늘 반쪽만 차 있다
-- 주말에 혼자 커피 마시다가 건너편 빈 의자를 한참 봤어`,
+- 문장 하나만 출력. 설명, 인사, 번호, 따옴표 없이 문장만.`,
                   apiKey, provider,
                 }),
               });
               if (!res.ok) { setSuggesting(false); return; }
-              const reader = res.body?.getReader();
-              if (!reader) { setSuggesting(false); return; }
-              const decoder = new TextDecoder();
-              let full = "";
-              while (true) {
-                const { done, value: chunk } = await reader.read();
-                if (done) break;
-                for (const line of decoder.decode(chunk, { stream: true }).split("\n")) {
-                  if (!line.startsWith("data: ")) continue;
-                  const d = line.slice(6).trim();
-                  if (d === "[DONE]") break;
-                  try { const p = JSON.parse(d); if (p.text) full += p.text; } catch {}
-                }
-              }
+              const data = await res.json();
+              const full = data.lyrics || "";
               if (full.trim()) setValue(full.trim().replace(/^["']|["']$/g, ""));
             } catch {}
             setSuggesting(false);
