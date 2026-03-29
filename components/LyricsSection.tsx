@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { buildLyricsRules, DEFAULT_BANNED_WORDS } from "@/lib/lyricsRules";
 import { buildProsePoetryPrompt } from "@/lib/essayEngine";
+import { calculateCost } from "@/lib/costTracker";
 import { Provider } from "./ApiKeyGate";
 import LyricsPostProcess from "./LyricsPostProcess";
 
@@ -16,6 +17,7 @@ interface LyricsSectionProps {
   onLyricsUpdate?: (lyrics: string) => void;
   onRegenerateStyle?: () => Promise<void>;
   autoGenerate?: boolean;
+  onCostAdd?: (costUsd: number) => void;
 }
 
 // === 송폼 블록 ===
@@ -193,7 +195,7 @@ function SubLabel({ label }: { label: string }) {
 
 // === 메인 컴포넌트 ===
 export default function LyricsSection({
-  style, language, currentSettings, apiKey, provider, onLyricsUpdate, onRegenerateStyle, autoGenerate,
+  style, language, currentSettings, apiKey, provider, onLyricsUpdate, onRegenerateStyle, autoGenerate, onCostAdd,
 }: LyricsSectionProps) {
   // 핵심 문장 — Chat Flow에서 가져오되 수정 가능
   const [coreMessage, setCoreMessage] = useState(currentSettings?.oneLiner || "");
@@ -539,12 +541,13 @@ export default function LyricsSection({
     setGenerating(true);
     setError("");
     setStreamingLyrics("");
+    const promptText = buildFullPrompt();
     setTimeout(() => streamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     try {
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: buildFullPrompt(), apiKey, provider }),
+        body: JSON.stringify({ prompt: promptText, apiKey, provider }),
       });
 
       if (!res.ok) {
@@ -582,6 +585,9 @@ export default function LyricsSection({
         setGeneratedLyrics(fullText);
         setStreamingLyrics("");
         onLyricsUpdate?.(fullText);
+        // 비용 추적 (Opus)
+        const cost = calculateCost(promptText, fullText, provider || "claude", "opus");
+        onCostAdd?.(cost.costUsd);
       }
     } catch {
       setError("API 호출 실패");

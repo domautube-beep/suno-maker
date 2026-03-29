@@ -1,12 +1,16 @@
 // API 비용 추정기
 // 문자 수 기반 토큰 추정 → 비용 계산
-// 한국어는 영어보다 토큰 효율이 낮으므로 1.5배 보정
 
-// 2026년 기준 대략 가격 (1M 토큰당 USD)
+// 2026년 기준 가격 (1M 토큰당 USD)
 const PRICING: Record<string, { input: number; output: number }> = {
-  claude: { input: 3, output: 15 },    // Claude Sonnet
-  openai: { input: 2.5, output: 10 },  // GPT-4o
-  gemini: { input: 0.075, output: 0.3 }, // Gemini Flash
+  // Claude
+  "claude-opus": { input: 15, output: 75 },
+  "claude-sonnet": { input: 3, output: 15 },
+  claude: { input: 3, output: 15 }, // 기본값 = Sonnet
+  // OpenAI
+  openai: { input: 2.5, output: 10 },
+  // Gemini
+  gemini: { input: 0.075, output: 0.3 },
 };
 
 // 문자 수 → 토큰 추정 (한국어 보정)
@@ -22,18 +26,24 @@ export interface CostEntry {
   outputChars: number;
   inputTokens: number;
   outputTokens: number;
-  provider: string;
+  model: string;
   costUsd: number;
 }
 
 export function calculateCost(
   inputText: string,
   outputText: string,
-  provider: string
+  provider: string,
+  model: "opus" | "sonnet" | "default" = "default"
 ): CostEntry {
+  // 모델별 가격 키 결정
+  let priceKey = provider;
+  if (provider === "claude" && model === "opus") priceKey = "claude-opus";
+  else if (provider === "claude" && model === "sonnet") priceKey = "claude-sonnet";
+
   const inputTokens = estimateTokens(inputText);
   const outputTokens = estimateTokens(outputText);
-  const price = PRICING[provider] || PRICING.claude;
+  const price = PRICING[priceKey] || PRICING.claude;
   const costUsd = (inputTokens * price.input + outputTokens * price.output) / 1_000_000;
 
   return {
@@ -41,7 +51,7 @@ export function calculateCost(
     outputChars: outputText.length,
     inputTokens,
     outputTokens,
-    provider,
+    model: priceKey,
     costUsd,
   };
 }

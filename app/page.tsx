@@ -192,7 +192,7 @@ export default function Home() {
       sessionStorage.removeItem("r3_lyrics");
       // 비용 추적
       const promptText = JSON.stringify(inputs);
-      const cost = calculateCost(promptText, fullText, provider || "claude");
+      const cost = calculateCost(promptText, fullText, provider || "claude", "sonnet");
       setTotalCostUsd((prev) => prev + cost.costUsd);
       setCallCount((prev) => prev + 1);
     } catch {
@@ -572,6 +572,10 @@ ${output.style}
                   onLyricsUpdate={(newLyrics) => setOutput((prev) => prev ? { ...prev, lyrics: newLyrics } : prev)}
                   onRegenerateStyle={() => { return generateStyle(currentInputs as Record<string, string>); }}
                   autoGenerate={autoLyrics}
+                  onCostAdd={(costUsd: number) => {
+                    setTotalCostUsd((prev) => prev + costUsd);
+                    setCallCount((prev) => prev + 1);
+                  }}
                 />
 
                 {/* AI 지침 복사 버튼 */}
