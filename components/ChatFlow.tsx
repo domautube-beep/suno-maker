@@ -104,9 +104,10 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
           )}
 
           {/* 레퍼런스 추천 */}
-          <button onClick={async () => {
+          <button data-ref-refresh onClick={async () => {
             if (!value.trim()) return;
-            if (!confirm("AI가 핵심 문장을 분석해서 참고할 곡과 설정을 추천합니다. API 크레딧이 소모됩니다.")) return;
+            if (recommendations && !confirm("다시 추천받으면 API 크레딧이 소모됩니다. 계속할까요?")) return;
+            if (!recommendations && !confirm("AI가 핵심 문장을 분석해서 참고할 곡과 설정을 추천합니다. API 크레딧이 소모됩니다.")) return;
             setAnalyzing(true);
             try {
               const res = await fetch("/api/lyrics", {
@@ -173,7 +174,16 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
       {/* 추천 결과 — 3개 카드 선택 */}
       {recommendations && (
         <div style={{ padding: "14px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316", marginBottom: "10px" }}>AI 추천 레퍼런스 — 하나를 선택하세요</p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 700, color: "#f97316" }}>AI 추천 레퍼런스 — 하나를 선택하세요</p>
+            <button onClick={() => { setRecommendations(null); setSelectedRef(-1); document.querySelector<HTMLButtonElement>('[data-ref-refresh]')?.click(); }}
+              style={{ fontSize: "10px", color: "#a3a3a3", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+              </svg>
+              다시 추천
+            </button>
+          </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
             {recommendations.map((rec, idx) => (
