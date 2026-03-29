@@ -353,7 +353,10 @@ export default function LyricsSection({
     parts.push(``);
 
     if (genreGuide) {
-      parts.push(`=== 장르 작법 ===`, genreGuide, ``);
+      parts.push(`=== 장르 작법 (필수 적용) ===`);
+      parts.push(`이 장르의 가사법을 반드시 따라라. 위 "가사 작성 규칙"의 장르별 작법 섹션도 함께 적용할 것.`);
+      parts.push(genreGuide);
+      parts.push(``);
     }
 
     // 기법 태그 → 강조/약화 지침
