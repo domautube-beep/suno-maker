@@ -94,52 +94,6 @@ function OneLinerInput({ placeholder, onSubmit, onAutoFill, onQuickStart, apiKey
       {/* 버튼 영역 */}
       {apiKey && (
         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {/* 주제 추천 — 항상 표시, 여러 번 가능 */}
-          <button
-            onClick={async () => {
-              if (suggesting || !apiKey || !provider) return;
-              setSuggesting(true);
-              try {
-                const res = await fetch("/api/lyrics", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    prompt: `노래 주제를 하나만 추천해줘.
-
-규칙:
-- 아래 카테고리 중 하나를 랜덤으로 골라서 그 영역의 주제를 만들어라:
-  [일상/직장, 계절/날씨, 관계/우정, 도시/여행, 성장/도전, 밤/새벽, 추억/향수, 분노/저항, 유머/위트, 자연/동물, 음식/감각, 돈/생존, 자유/일탈, 기다림/시간]
-- 일반적인 사람이 공감할 수 있는 감정/상황/장면을 담은 한 문장
-- 어떤 주제든 가능하지만, 표현이 뻔하면 안 됨. 같은 사랑이라도 시선이 달라야 함
-- 구체적인 장면이나 상황이 떠오르는 문장
-- 한국어로
-- 문장 하나만 출력. 설명, 인사, 번호, 따옴표 없이 문장만.
-${prevTopics.length > 0 ? `\n절대 금지 — 이전에 나온 주제와 비슷한 것:\n${prevTopics.map(t => `- ${t}`).join("\n")}\n완전히 다른 카테고리, 다른 장면, 다른 감정으로 써라.` : ""}`,
-                    apiKey, provider,
-                  }),
-                });
-                if (!res.ok) { setSuggesting(false); return; }
-                const data = await res.json();
-                const full = data.lyrics || "";
-                if (full.trim()) {
-                const cleaned = full.trim().replace(/^["']|["']$/g, "");
-                setValue(cleaned);
-                setPrevTopics((prev) => [...prev.slice(-4), cleaned]);
-              }
-              } catch {}
-              setSuggesting(false);
-            }}
-            disabled={suggesting}
-            style={{
-              padding: "8px 16px", borderRadius: "9999px", fontSize: "12px", fontWeight: 600,
-              backgroundColor: suggesting ? "#f5f5f5" : "#0a0a0a",
-              color: suggesting ? "#a3a3a3" : "#fff",
-              border: "none", cursor: suggesting ? "wait" : "pointer",
-              display: "flex", alignItems: "center", gap: "6px",
-            }}
-          >
-            {suggesting ? "추천 중..." : "🎲 주제 추천"}
-          </button>
           {/* 30자 미만: 더 풍부하게 */}
           {value.trim().length > 0 && value.trim().length < 30 && (
             <button onClick={handleExpand} disabled={expanding}
