@@ -386,22 +386,28 @@ export default function LyricsSection({
   const streamRef = useRef<HTMLPreElement>(null);
   const userScrolledRef = useRef(false);
 
-  // 퀵스타트: autoGenerate + style 완성 후 자동 가사 생성
+  // 퀵스타트: 언어/성별 선택 모달
+  const [quickModal, setQuickModal] = useState(false);
+  const [quickLang, setQuickLang] = useState("ko");
+  const [quickVoice, setQuickVoice] = useState(1); // 남성 중음
   const [autoStarted, setAutoStarted] = useState(false);
   const prevStyleRef = useRef("");
 
   useEffect(() => {
-    // 조건: autoGenerate ON + style이 비어있지 않고 변경됨 + 아직 시작 안 함 + 생성 중 아님
     if (!autoGenerate || !style || style.length < 50 || autoStarted || generating || tracks.length > 0) return;
-    // style이 이전과 같으면 스킵 (스트리밍 중간값 방지)
     if (style === prevStyleRef.current) return;
     prevStyleRef.current = style;
+    // 모달 표시
+    setQuickModal(true);
+  }, [autoGenerate, style, generating, tracks.length, autoStarted]);
 
+  // 모달에서 확인 후 실행
+  const handleQuickConfirm = () => {
+    setQuickModal(false);
     setAutoStarted(true);
 
-    // 기본값 설정
-    const vt = 1, tm = 3, ar = 0, dl = 1, rv = 1, ev = 3;
-    setLyricsLang("ko"); setDensity("medium"); setEmotionArc(0);
+    const vt = quickVoice, tm = 3, ar = 0, dl = 1, rv = 1, ev = 3;
+    setLyricsLang(quickLang); setDensity("medium"); setEmotionArc(0);
     setVpVoice(vt); setVpTimbre(tm); setVpArticulation(ar);
     setVpDelivery(dl); setVpReverb(rv); setVpEvolution(ev);
 
@@ -434,6 +440,10 @@ export default function LyricsSection({
         `[Evolution: ${VP_EVOLUTION[ev].value}]`,
       ].join("\n");
 
+      const langLabel = quickLang === "ko" ? "한국어 — 반드시 한국어로만. 영어 금지." :
+        quickLang === "en" ? "English only. No Korean." :
+        quickLang === "ja" ? "日本語のみ." : "한국어 + English 믹스.";
+
       const prompt = [
         `아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`,
         core ? `\n=== 핵심 문장 ===\n"${core}"\n` : "",
@@ -442,7 +452,7 @@ export default function LyricsSection({
         `\n=== Style of Music ===\n${style}`,
         `\n=== VOCAL PROFILE ===\n${vp}`,
         `\n=== 가사 구조 ===`,
-        `가사 언어: 한국어 — 반드시 한국어로만. 영어 금지.`,
+        `가사 언어: ${langLabel}`,
         `송폼: ${formLabels.join(" → ")}`,
         `가사 밀도: Verse 4줄, Chorus 4줄`,
         `감정 흐름: ${EMOTION_ARCS[0].value}`,
@@ -481,8 +491,23 @@ export default function LyricsSection({
     };
 
     run();
+  };
+
+  // 가사 sessionStorage 저장
+  useEffect(() => {
+    if (generatedLyrics) sessionStorage.setItem("r3_lyrics", generatedLyrics);
+  }, [generatedLyrics]);
+
+  // 가사 sessionStorage 복원
+  useEffect(() => {
+    const saved = sessionStorage.getItem("r3_lyrics");
+    if (saved && !generatedLyrics && tracks.length === 0) {
+      setGeneratedLyrics(saved);
+      setTracks([{ id: 1, lyrics: saved }]);
+      setActiveTrack(0);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoGenerate, style, generating, tracks.length]);
+  }, []);
 
   // 사용자 스크롤 감지
   useEffect(() => {
@@ -1199,6 +1224,47 @@ export default function LyricsSection({
               현재 {trackNumber}곡 생성됨
             </p>
           )}
+        </div>
+      )}
+
+      {/* 퀵스타트 모달 — 언어/성별 선택 */}
+      {quickModal && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.4)" }} onClick={() => setQuickModal(false)} />
+          <div style={{ position: "relative", backgroundColor: "#fff", borderRadius: "20px", padding: "28px", width: "340px", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, marginBottom: "20px", textAlign: "center" }}>가사 생성 설정</h3>
+
+            <p style={{ fontSize: "11px", fontWeight: 600, color: "#737373", marginBottom: "8px" }}>가사 언어</p>
+            <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+              {[{ l: "한국어", v: "ko" }, { l: "English", v: "en" }, { l: "日本語", v: "ja" }, { l: "KO+EN", v: "mixed" }].map((o) => (
+                <button key={o.v} onClick={() => setQuickLang(o.v)} style={{
+                  flex: 1, padding: "8px", borderRadius: "9999px", fontSize: "12px", fontWeight: quickLang === o.v ? 600 : 400,
+                  backgroundColor: quickLang === o.v ? "#0a0a0a" : "#fff",
+                  color: quickLang === o.v ? "#fff" : "#a3a3a3",
+                  border: quickLang === o.v ? "1px solid #0a0a0a" : "1px solid #e5e5e5", cursor: "pointer",
+                }}>{o.l}</button>
+              ))}
+            </div>
+
+            <p style={{ fontSize: "11px", fontWeight: 600, color: "#737373", marginBottom: "8px" }}>보컬 타입</p>
+            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginBottom: "20px" }}>
+              {VP_VOICE_TYPE.slice(0, 6).map((v, i) => (
+                <button key={v.label} onClick={() => setQuickVoice(i)} style={{
+                  padding: "6px 12px", borderRadius: "9999px", fontSize: "11px", fontWeight: quickVoice === i ? 600 : 400,
+                  backgroundColor: quickVoice === i ? "#0a0a0a" : "#fff",
+                  color: quickVoice === i ? "#fff" : "#a3a3a3",
+                  border: quickVoice === i ? "1px solid #0a0a0a" : "1px solid #e5e5e5", cursor: "pointer",
+                }}>{v.label}</button>
+              ))}
+            </div>
+
+            <button onClick={handleQuickConfirm} style={{
+              width: "100%", padding: "14px", borderRadius: "12px", backgroundColor: "#f97316",
+              color: "#fff", fontSize: "14px", fontWeight: 700, border: "none", cursor: "pointer",
+            }}>
+              가사 생성 시작
+            </button>
+          </div>
         </div>
       )}
     </div>
