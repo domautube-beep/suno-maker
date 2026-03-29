@@ -408,44 +408,53 @@ export default function Home() {
                   charLimit={900}
                   onEdit={(newContent) => setOutput((prev) => prev ? { ...prev, style: newContent } : prev)}
                 />
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginTop: "-4px" }}>
-                  <button onClick={handleRegenerateStyle}
-                    style={{ padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
-                      backgroundColor: "#fff7ed", color: "#f97316", border: "1px solid rgba(249,115,22,0.3)", cursor: "pointer" }}>
-                    스타일 다시 생성
-                  </button>
-                  <button onClick={() => {
-                    const name = prompt("프리셋 이름을 입력하세요 (예: R&B 감성)");
-                    if (!name || !output.style) return;
-                    const presets = JSON.parse(localStorage.getItem("r3_style_presets") || "{}");
-                    presets[name] = { style: output.style, notes: forensicLog, inputs: currentInputs };
-                    localStorage.setItem("r3_style_presets", JSON.stringify(presets));
-                    alert(`"${name}" 프리셋이 저장되었습니다.`);
-                  }} style={{ padding: "6px 14px", borderRadius: "9999px", fontSize: "11px", fontWeight: 500,
-                    backgroundColor: "#fff", color: "#737373", border: "1px solid #e5e5e5", cursor: "pointer" }}>
-                    프리셋 저장
-                  </button>
-
-                  {/* 저장된 프리셋 */}
-                  {(() => {
-                    const presets = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("r3_style_presets") || "{}") : {};
-                    const keys = Object.keys(presets);
-                    if (keys.length === 0) return null;
-                    return keys.map((k) => (
-                      <button key={k} onClick={() => {
-                        const p = presets[k];
-                        setOutput((prev) => prev ? { ...prev, style: p.style } : { style: p.style, lyrics: "" });
-                        setForensicLog(p.notes || "");
-                        if (p.inputs) setCurrentInputs(p.inputs);
-                      }} style={{
-                        padding: "4px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 500,
-                        backgroundColor: "#0a0a0a", color: "#fff", border: "none", cursor: "pointer",
-                      }}>
-                        {k}
-                      </button>
-                    ));
-                  })()}
                 </div>
+
+                {/* 스타일 액션 바 */}
+                <div style={{ padding: "12px 20px", backgroundColor: "#fafafa", borderRadius: "12px", border: "1px solid #e5e5e5" }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                    <button onClick={handleRegenerateStyle}
+                      style={{ padding: "7px 16px", borderRadius: "9999px", fontSize: "11px", fontWeight: 600,
+                        backgroundColor: "#f97316", color: "#fff", border: "none", cursor: "pointer" }}>
+                      다시 생성
+                    </button>
+                    <button onClick={() => {
+                      const name = prompt("프리셋 이름을 입력하세요 (예: R&B 감성)");
+                      if (!name || !output.style) return;
+                      const presets = JSON.parse(localStorage.getItem("r3_style_presets") || "{}");
+                      presets[name] = { style: output.style, notes: forensicLog, inputs: currentInputs };
+                      localStorage.setItem("r3_style_presets", JSON.stringify(presets));
+                      alert(`"${name}" 프리셋이 저장되었습니다.`);
+                    }} style={{ padding: "7px 16px", borderRadius: "9999px", fontSize: "11px", fontWeight: 500,
+                      backgroundColor: "#fff", color: "#0a0a0a", border: "1px solid #d4d4d4", cursor: "pointer" }}>
+                      프리셋 저장
+                    </button>
+
+                    {/* 저장된 프리셋 */}
+                    {(() => {
+                      const presets = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("r3_style_presets") || "{}") : {};
+                      const keys = Object.keys(presets);
+                      if (keys.length === 0) return null;
+                      return (
+                        <>
+                          <span style={{ fontSize: "10px", color: "#a3a3a3" }}>|</span>
+                          {keys.map((k) => (
+                            <button key={k} onClick={() => {
+                              const p = presets[k];
+                              setOutput((prev) => prev ? { ...prev, style: p.style } : { style: p.style, lyrics: "" });
+                              setForensicLog(p.notes || "");
+                              if (p.inputs) setCurrentInputs(p.inputs);
+                            }} style={{
+                              padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 500,
+                              backgroundColor: "#0a0a0a", color: "#fff", border: "none", cursor: "pointer",
+                            }}>
+                              {k}
+                            </button>
+                          ))}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 {/* Lyrics — 가사 설정 + 생성 */}
