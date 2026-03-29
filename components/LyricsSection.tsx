@@ -420,6 +420,7 @@ export default function LyricsSection({
     setGenerating(true);
     setError("");
     setStreamingLyrics("");
+    setTimeout(() => streamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     try {
       const res = await fetch("/api/lyrics-stream", {
         method: "POST",
@@ -481,6 +482,7 @@ export default function LyricsSection({
 
     // 2. 가사 생성 (스트리밍)
     setGenerating(true);
+    setTimeout(() => streamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     try {
       const nextNum = trackNumber + 1;
       const prompt = buildFullPrompt() + `\n\n=== 앨범 변주 지침 (Track ${nextNum}) ===

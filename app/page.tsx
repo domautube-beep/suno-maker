@@ -87,6 +87,8 @@ export default function Home() {
     setGenerating(true);
     setStreamingText("");
     setForensicLog("");
+    // 스트리밍 영역으로 스크롤
+    setTimeout(() => styleStreamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     try {
       const res = await fetch("/api/generate-stream", {
         method: "POST",
