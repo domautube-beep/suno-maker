@@ -23,18 +23,45 @@ export default function Home() {
     return null;
   });
 
-  // 2단계: chat → result (Style + Lyrics 한 화면)
-  const [phase, setPhase] = useState<AppPhase>("chat");
+  // 세션 상태 복원
+  const [phase, setPhase] = useState<AppPhase>(() => {
+    if (typeof window !== "undefined") return (sessionStorage.getItem("r3_phase") as AppPhase) || "chat";
+    return "chat";
+  });
   const [previewSections, setPreviewSections] = useState<PreviewSection[]>([]);
-  const [currentInputs, setCurrentInputs] = useState<Partial<SunoInput>>({});
-  const [output, setOutput] = useState<SunoOutput | null>(null);
-  const [forensicLog, setForensicLog] = useState("");
+  const [currentInputs, setCurrentInputs] = useState<Partial<SunoInput>>(() => {
+    if (typeof window !== "undefined") { try { return JSON.parse(sessionStorage.getItem("r3_inputs") || "{}"); } catch { return {}; } }
+    return {};
+  });
+  const [output, setOutput] = useState<SunoOutput | null>(() => {
+    if (typeof window !== "undefined") { try { return JSON.parse(sessionStorage.getItem("r3_output") || "null"); } catch { return null; } }
+    return null;
+  });
+  const [forensicLog, setForensicLog] = useState(() => {
+    if (typeof window !== "undefined") return sessionStorage.getItem("r3_log") || "";
+    return "";
+  });
   const [generating, setGenerating] = useState(false);
   const [chatKey, setChatKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
 
   // 모바일 프리뷰 바텀시트
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
+
+  // 세션 상태 저장
+  useEffect(() => { sessionStorage.setItem("r3_phase", phase); }, [phase]);
+  useEffect(() => { sessionStorage.setItem("r3_inputs", JSON.stringify(currentInputs)); }, [currentInputs]);
+  useEffect(() => { if (output) sessionStorage.setItem("r3_output", JSON.stringify(output)); }, [output]);
+  useEffect(() => { sessionStorage.setItem("r3_log", forensicLog); }, [forensicLog]);
+
+  // 복원 시 프리뷰 재생성
+  useEffect(() => {
+    if (phase === "result" && Object.keys(currentInputs).length > 0) {
+      const sections = generatePreview(currentInputs);
+      setPreviewSections(sections);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const flashToastRef = useRef<() => void>(() => {});
   const [identityOverride, setIdentityOverride] = useState<string | null>(null);
@@ -232,7 +259,13 @@ export default function Home() {
     setForensicLog("");
     setGenerating(false);
     setIdentityOverride(null);
+    setAutoLyrics(false);
     setChatKey((prev) => prev + 1);
+    // 세션 스토리지 초기화
+    sessionStorage.removeItem("r3_phase");
+    sessionStorage.removeItem("r3_inputs");
+    sessionStorage.removeItem("r3_output");
+    sessionStorage.removeItem("r3_log");
   }, []);
 
   // API 키 미입력 시 게이트 표시
