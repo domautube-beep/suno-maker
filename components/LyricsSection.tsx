@@ -374,10 +374,8 @@ export default function LyricsSection({
 
     parts.push(`=== 출력 ===`);
     parts.push(`1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`);
-    parts.push(`2. 각 섹션 헤더를 한 줄로 작성: [섹션명: 악기편성 + 보컬스타일 + 텍스처 — 핵심만 압축]`);
-    parts.push(`   예시: [Verse 1: Intimate lead vocal, dry piano, soft stomp drum — close-mic delivery]`);
-    parts.push(`   예시: [Chorus: Full band, wide stereo strings, brass, electric guitar — group belt]`);
-    parts.push(`3. 헤더 아래에 가사만 (브라켓 밖). 감정 흐름에 따라 편곡 강도를 섹션마다 변화`);
+    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사. 메타데이터는 태그 3~5개로 짧게 (긴 문장 금지)`);
+    parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER 강도를 섹션마다 변화`);
     parts.push(`4. 코드블록 없이 텍스트만 출력`);
     parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
 
