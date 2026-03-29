@@ -292,16 +292,15 @@ export default function LyricsSection({
 
     const parts: string[] = [];
 
-    // STEP 1: 산문시 생성 (가사의 원재료)
-    if (coreMessage.trim()) {
-      parts.push(buildProsePoetryPrompt(
-        coreMessage.trim(),
-        genre,
-        lyricsLang,
-        reference.trim() && refAnalysis ? `레퍼런스 "${reference.trim()}" 분석:\n${refAnalysis}` : undefined
-      ));
-      parts.push(``);
-    }
+    // STEP 1: 산문시 생성 (가사의 원재료) — 항상 실행
+    const topic = coreMessage.trim() || settingsLines.join(", ") || genre || "자유 주제";
+    parts.push(buildProsePoetryPrompt(
+      topic,
+      genre,
+      lyricsLang,
+      reference.trim() && refAnalysis ? `레퍼런스 "${reference.trim()}" 분석:\n${refAnalysis}` : undefined
+    ));
+    parts.push(``);
 
     // STEP 2: 산문시 → 가사 변환
     parts.push(`=== STEP 2: 산문시 → 가사 추출 ===`);
@@ -312,11 +311,6 @@ export default function LyricsSection({
     parts.push(`- 산문시에서 가장 강한 구절을 Hook/Chorus로 배치`);
     parts.push(`- 산문시의 서사 흐름을 Verse→Chorus→Bridge 구조에 매핑`);
     parts.push(``);
-
-    // 핵심 문장이 없으면 기존 방식
-    if (!coreMessage.trim()) {
-      parts.push(`아래 설정에 맞는 Suno v5.5용 가사를 작성해줘.`);
-    }
 
     parts.push(``);
     parts.push(`=== 가사 작성 규칙 ===`);
