@@ -45,6 +45,16 @@ export default function Home() {
   const [chatKey, setChatKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
 
+  // 스타일 프리셋 (localStorage 기반)
+  const [stylePresets, setStylePresets] = useState<Record<string, { style: string; notes: string; inputs: Partial<SunoInput> }>>(() => {
+    if (typeof window !== "undefined") { try { return JSON.parse(localStorage.getItem("r3_style_presets") || "{}"); } catch { return {}; } }
+    return {};
+  });
+  const [presetEditMode, setPresetEditMode] = useState(false);
+
+  // 프리셋 변경 시 localStorage 동기화
+  useEffect(() => { localStorage.setItem("r3_style_presets", JSON.stringify(stylePresets)); }, [stylePresets]);
+
   // 모바일 프리뷰 바텀시트
   const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
@@ -117,8 +127,10 @@ export default function Home() {
     setGenerating(true);
     setStreamingText("");
     setForensicLog("");
-    // 스트리밍 영역으로 스크롤
-    setTimeout(() => styleStreamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    // 스트리밍 영역으로 스크롤 — 이미 결과가 보이는 상태(재생성)에서는 스크롤하지 않음
+    if (!output) {
+      setTimeout(() => styleStreamRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+    }
     try {
       const res = await fetch("/api/generate-stream", {
         method: "POST",
@@ -421,39 +433,59 @@ export default function Home() {
                     <button onClick={() => {
                       const name = prompt("프리셋 이름을 입력하세요 (예: R&B 감성)");
                       if (!name || !output.style) return;
-                      const presets = JSON.parse(localStorage.getItem("r3_style_presets") || "{}");
-                      presets[name] = { style: output.style, notes: forensicLog, inputs: currentInputs };
-                      localStorage.setItem("r3_style_presets", JSON.stringify(presets));
-                      alert(`"${name}" 프리셋이 저장되었습니다.`);
+                      setStylePresets((prev) => ({ ...prev, [name]: { style: output.style, notes: forensicLog, inputs: currentInputs as Partial<SunoInput> } }));
                     }} style={{ padding: "7px 16px", borderRadius: "9999px", fontSize: "11px", fontWeight: 500,
                       backgroundColor: "#fff", color: "#0a0a0a", border: "1px solid #d4d4d4", cursor: "pointer" }}>
                       프리셋 저장
                     </button>
 
                     {/* 저장된 프리셋 */}
-                    {(() => {
-                      const presets = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("r3_style_presets") || "{}") : {};
-                      const keys = Object.keys(presets);
-                      if (keys.length === 0) return null;
-                      return (
-                        <>
-                          <span style={{ fontSize: "10px", color: "#a3a3a3" }}>|</span>
-                          {keys.map((k) => (
-                            <button key={k} onClick={() => {
-                              const p = presets[k];
+                    {Object.keys(stylePresets).length > 0 && (
+                      <>
+                        <span style={{ fontSize: "10px", color: "#a3a3a3" }}>|</span>
+                        {Object.keys(stylePresets).map((k) => (
+                          <div key={k} style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                            <button onClick={() => {
+                              if (presetEditMode) return;
+                              const p = stylePresets[k];
                               setOutput((prev) => prev ? { ...prev, style: p.style } : { style: p.style, lyrics: "" });
                               setForensicLog(p.notes || "");
                               if (p.inputs) setCurrentInputs(p.inputs);
                             }} style={{
-                              padding: "5px 12px", borderRadius: "9999px", fontSize: "10px", fontWeight: 500,
+                              padding: "5px 12px", borderRadius: presetEditMode ? "9999px 0 0 9999px" : "9999px",
+                              fontSize: "10px", fontWeight: 500,
                               backgroundColor: "#0a0a0a", color: "#fff", border: "none", cursor: "pointer",
                             }}>
                               {k}
                             </button>
-                          ))}
-                        </>
-                      );
-                    })()}
+                            {presetEditMode && (
+                              <button onClick={() => {
+                                if (!confirm(`"${k}" 프리셋을 삭제할까요?`)) return;
+                                setStylePresets((prev) => {
+                                  const next = { ...prev };
+                                  delete next[k];
+                                  return next;
+                                });
+                              }} style={{
+                                padding: "5px 8px", borderRadius: "0 9999px 9999px 0",
+                                fontSize: "10px", fontWeight: 700,
+                                backgroundColor: "#dc2626", color: "#fff", border: "none", cursor: "pointer",
+                              }}>
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button onClick={() => setPresetEditMode((v) => !v)} style={{
+                          padding: "5px 10px", borderRadius: "9999px", fontSize: "10px", fontWeight: 600,
+                          backgroundColor: presetEditMode ? "#f97316" : "#fff",
+                          color: presetEditMode ? "#fff" : "#a3a3a3",
+                          border: presetEditMode ? "none" : "1px solid #e5e5e5", cursor: "pointer",
+                        }}>
+                          {presetEditMode ? "완료" : "편집"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
