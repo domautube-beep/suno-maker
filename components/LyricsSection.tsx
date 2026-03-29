@@ -373,7 +373,7 @@ export default function LyricsSection({
 
     parts.push(`=== 출력 ===`);
     parts.push(`1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`);
-    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사`);
+    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사. 메타데이터는 태그 3~5개로 짧게 (긴 문장 금지)`);
     parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER 강도를 섹션마다 변화`);
     parts.push(`4. 코드블록 없이 텍스트만 출력`);
     parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
@@ -456,7 +456,7 @@ export default function LyricsSection({
         `송폼: ${formLabels.join(" → ")}`,
         `가사 밀도: Verse 4줄, Chorus 4줄`,
         `감정 흐름: ${EMOTION_ARCS[0].value}`,
-        `\n=== 출력 ===\n1. VOCAL PROFILE 맨 위에 출력\n2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사\n3. 코드블록 없이 텍스트만`,
+        `\n=== 출력 ===\n1. VOCAL PROFILE 맨 위에 출력\n2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사. 메타데이터는 태그 3~5개로 짧게 (긴 문장 금지)\n3. 코드블록 없이 텍스트만`,
       ].join("\n");
 
       try {
@@ -586,6 +586,10 @@ export default function LyricsSection({
   const handleGenerateNextTrack = async () => {
     setError("");
     setStreamingLyrics("");
+    // 페이지 상단으로 스크롤 (스타일 스트리밍이 상단에서 시작)
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    const scrollParent = streamRef.current?.closest(".overflow-y-auto") as HTMLElement | null;
+    if (scrollParent) scrollParent.scrollTop = 0;
 
     // 1. 스타일 재생성 (변주) — 완료까지 대기
     if (onRegenerateStyle) {
