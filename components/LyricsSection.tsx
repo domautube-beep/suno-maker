@@ -382,12 +382,13 @@ export default function LyricsSection({
       parts.push(``);
     }
 
-    parts.push(`=== 출력 ===`);
-    parts.push(`1. VOCAL PROFILE 명령어를 맨 위에 그대로 출력`);
-    parts.push(`2. 각 섹션: [SECTION] + [VOCAL_PROMPT] + [LAYER] + [Texture] + 가사. 메타데이터는 태그 3~5개로 짧게 (긴 문장 금지)`);
-    parts.push(`3. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER 강도를 섹션마다 변화`);
-    parts.push(`4. 코드블록 없이 텍스트만 출력`);
-    parts.push(`5. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
+    parts.push(`=== 출력 — 절대 규칙 ===`);
+    parts.push(`1. VOCAL PROFILE을 맨 위에 출력. 모든 태그는 [] 안에 영어로만.`);
+    parts.push(`2. 각 섹션: [SECTION: English] + [VOCAL_PROMPT: English] + [LAYER: English] + [Texture: English] + 가사`);
+    parts.push(`3. [] 안의 내용은 100% 영어. 한국어/일본어 등 절대 금지. 예: [SECTION: Verse 1] (O) / [SECTION: 1절] (X)`);
+    parts.push(`4. 가사 본문만 브라켓 밖에 쓰고, 선택된 언어로 작성`);
+    parts.push(`5. 감정 흐름에 따라 VOCAL_PROMPT와 LAYER를 섹션마다 변화`);
+    parts.push(`6. 코드블록 없이 텍스트만 출력. Suno Lyrics 필드에 바로 붙여넣을 수 있는 형태`);
 
     return parts.join("\n");
   };

@@ -15,23 +15,25 @@ export function buildLyricsRules(bannedWords: string): string {
 ■ 일상 감성 위에 반발짝만 창의적. 기법을 과시하지 마라.
 ■ 라임을 위해 말을 만들지 마라. 의미가 먼저, 라임은 따라온다.
 
-━━━ 1. 출력 형식 (Suno v5.5) ━━━
+━━━ 1. 출력 형식 (Suno v5.5) — 절대 규칙 ━━━
 
 ■ 출력 = VOCAL PROFILE + LYRICS
-■ 브라켓 [] 안은 영어. 가사는 브라켓 밖.
+■ 가사(lyrics)만 브라켓 밖에 쓴다. 가사를 제외한 모든 지시/메타데이터/프롬프트는 반드시 [] 안에 넣는다.
+■ [] 안의 내용은 반드시 영어로만 쓴다. 한국어/일본어 등 비영어 금지.
+■ 가사 본문만 선택된 언어(한국어/영어/믹스)로 쓴다.
 ■ Style of Music에 보컬 단어 금지.
 
-VOCAL PROFILE 필수:
-[VOCAL_PROFILE: 방향] [VOICE_TYPE: 성별,음역] [TIMBRE: 음색]
-[ARTICULATION: 딕션] [VIBRATO: 비브라토] [DELIVERY: 전달]
-[REVERB: 공간감] [PERFORMANCE_TRAITS: 특성] [Evolution: 변화]
+VOCAL PROFILE 필수 (전부 [] 안, 영어):
+[VOCAL_PROFILE: direction] [VOICE_TYPE: gender, range] [TIMBRE: tone color]
+[ARTICULATION: diction] [VIBRATO: style] [DELIVERY: approach]
+[REVERB: space] [PERFORMANCE_TRAITS: traits] [Evolution: arc]
 
-각 섹션:
-[SECTION: 섹션명]
-[VOCAL_PROMPT: 톤/호흡/아크]
-[LAYER: 악기/질감]
-[Texture: 변화]
-가사 본문
+각 섹션 (태그는 전부 [] 안, 영어):
+[SECTION: section name in English]
+[VOCAL_PROMPT: tone/breath/arc in English]
+[LAYER: instruments/texture in English]
+[Texture: changes in English]
+가사 본문 (이것만 브라켓 밖, 선택된 언어로)
 
 ━━━ 2. 리듬의 뼈대 = 의성어/의태어 ━━━
 
